@@ -19,6 +19,7 @@ from app.models import (
 # Import routers
 from app.routes.public import router as public_router
 from app.routes.auth import router as auth_router
+from app.routes.seller import router as seller_router
 
 # ── App setup ─────────────────────────────────────────────────
 
@@ -77,11 +78,12 @@ def on_startup():
 # Public (no auth)
 app.include_router(public_router)
 app.include_router(auth_router)
+app.include_router(seller_router)
 
-# Phase 5+ will add:
-# app.include_router(seller_router)
+# Phase 6+ will add:
 # app.include_router(bidder_router)
 # app.include_router(admin_router)
+
 
 
 
