@@ -28,5 +28,9 @@ class Bid(Base):
     auction = relationship("Auction", back_populates="bids")
     bidder  = relationship("User",    back_populates="bids")
 
+    @property
+    def bidder_name(self) -> str:
+        return self.bidder.name if self.bidder else "Unknown"
+
     def __repr__(self):
         return f"<Bid id={self.id} auction_id={self.auction_id} amount={self.amount}>"

@@ -21,6 +21,7 @@ from app.routes.public import router as public_router
 from app.routes.auth import router as auth_router
 from app.routes.seller import router as seller_router
 from app.routes.admin import router as admin_router
+from app.routes.bidding import router as bidding_router
 
 # ── App setup ─────────────────────────────────────────────────
 
@@ -76,14 +77,12 @@ def on_startup():
 
 # ── Routes ────────────────────────────────────────────────────
 
-# Public (no auth)
+# Routes
 app.include_router(public_router)
 app.include_router(auth_router)
 app.include_router(seller_router)
 app.include_router(admin_router)
-
-# Phase 7+ will add:
-# app.include_router(bidder_router)
+app.include_router(bidding_router)
 
 
 

@@ -35,6 +35,19 @@ class BidResponse(BaseModel):
         from_attributes = True
 
 
+class BidHistoryItem(BaseModel):
+    id:          int
+    auction_id:  int
+    bidder_id:   int
+    bidder_name: Optional[str] = None
+    amount:      Decimal
+    bid_type:    BidType
+    created_at:  datetime
+
+    class Config:
+        from_attributes = True
+
+
 # ── ProxyBid ──────────────────────────────────────────────────
 
 class ProxyBidCreate(BaseModel):
