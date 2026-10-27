@@ -1,5 +1,5 @@
 """
-CRUD and business logic for Bidding (Phase 7 - Normal Bidding)
+CRUD and business logic for Bidding (Phase 7 Normal + Phase 8 Proxy)
 """
 
 from sqlalchemy.orm import Session, joinedload
@@ -105,6 +105,10 @@ def place_bid(
     auction.current_bid = amount
     auction.winner_id = bidder.id
     auction.total_bids = (auction.total_bids or 0) + 1
+
+    # 9. Phase 8: Trigger proxy counter-bid if any proxy exists
+    from app.services.proxy_bid_service import trigger_proxy_after_manual_bid
+    trigger_proxy_after_manual_bid(db, auction, bidder.id, amount)
 
     db.commit()
     db.refresh(new_bid)
