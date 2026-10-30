@@ -1,12 +1,14 @@
 """
 Auction Bidding Platform — Main Entry Point
-Phase 3: FastAPI + SQLAlchemy connected
+Phase 9: Auction Ending Scheduler added
 """
 
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 import os
+import logging
 
 from app.config.database import engine, Base, test_connection
 
@@ -17,11 +19,35 @@ from app.models import (
 )
 
 # Import routers
-from app.routes.public import router as public_router
-from app.routes.auth import router as auth_router
-from app.routes.seller import router as seller_router
-from app.routes.admin import router as admin_router
+from app.routes.public  import router as public_router
+from app.routes.auth    import router as auth_router
+from app.routes.seller  import router as seller_router
+from app.routes.admin   import router as admin_router
 from app.routes.bidding import router as bidding_router
+
+# Phase 9: background scheduler
+from app.scheduler import start_scheduler, stop_scheduler
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+
+# ── Lifespan (replaces deprecated @app.on_event) ──────────────
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Startup and shutdown logic."""
+    # ── Startup ────────────────────────────────────────────────
+    logger.info("Auction Platform starting...")
+    Base.metadata.create_all(bind=engine)   # create tables if missing
+    test_connection()
+    start_scheduler()                        # Phase 9: start background closer
+    logger.info("Server ready at http://127.0.0.1:8000  |  Docs: /docs")
+    yield
+    # ── Shutdown ───────────────────────────────────────────────
+    stop_scheduler()
+    logger.info("Auction Platform shut down cleanly.")
+
 
 # ── App setup ─────────────────────────────────────────────────
 
@@ -44,13 +70,14 @@ A full-stack auction platform built with:
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
+    lifespan=lifespan,
 )
 
 # ── Middleware ─────────────────────────────────────────────────
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],        # In production: replace with your frontend URL
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -62,32 +89,15 @@ UPLOAD_DIR = "uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
-# ── Startup event ──────────────────────────────────────────────
-
-@app.on_event("startup")
-def on_startup():
-    """Runs once when the server starts."""
-    print("\nAuction Platform starting...")
-    # Create tables if they don't exist (safe — won't drop existing data)
-    Base.metadata.create_all(bind=engine)
-    test_connection()
-    print("Server ready at http://127.0.0.1:8000")
-    print("API Docs:   http://127.0.0.1:8000/docs\n")
-
-
 # ── Routes ────────────────────────────────────────────────────
 
-# Routes
 app.include_router(public_router)
 app.include_router(auth_router)
 app.include_router(seller_router)
 app.include_router(admin_router)
 app.include_router(bidding_router)
 
-
-
-
-# ── Root endpoint ──────────────────────────────────────────────
+# ── Root endpoints ─────────────────────────────────────────────
 
 @app.get("/", tags=["Root"])
 def root():
@@ -106,3 +116,4 @@ def health_check():
 
 # ── Run ────────────────────────────────────────────────────────
 # Command: uvicorn main:app --reload
+

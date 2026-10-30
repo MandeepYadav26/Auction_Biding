@@ -30,6 +30,7 @@ from app.services.category_crud import (
     update_category,
     delete_category,
 )
+from app.services.auction_end_service import close_expired_auctions  # Phase 9
 from app.utils.auth_dependency import require_role
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
@@ -216,3 +217,19 @@ def toggle_user_status(
             detail="User not found."
         )
     return user
+
+
+# ── Phase 9: Manual auction closer (for testing / emergency) ──
+
+@router.post("/run-auction-closer", tags=["Admin"])
+def run_auction_closer_manually(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_admin_user),
+):
+    """
+    Manually trigger the auction-ending process.
+    Closes all active auctions whose end_time has passed.
+    (The background scheduler runs this automatically every 60 seconds.)
+    """
+    summary = close_expired_auctions(db)
+    return {"message": "Auction closer completed.", "summary": summary}
