@@ -8,6 +8,7 @@ from decimal import Decimal
 from typing import Optional
 from app.models.bid import BidType
 from app.models.won_auction import PaymentStatus
+from app.models.auction import AuctionStatus
 
 
 # ── Bid ───────────────────────────────────────────────────────
@@ -117,6 +118,21 @@ class InvoiceResponse(BaseModel):
     invoice_number: str
     amount:         Decimal
     created_at:     datetime
+
+    class Config:
+        from_attributes = True
+
+
+# ── Buy It Now ────────────────────────────────────────────────
+
+class BuyItNowResponse(BaseModel):
+    """Returned when a bidder successfully purchases via Buy-It-Now."""
+    auction_id:    int
+    auction_title: str
+    winner_id:     int
+    bin_price:     Decimal
+    status:        AuctionStatus
+    won_auction_id: int
 
     class Config:
         from_attributes = True

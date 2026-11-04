@@ -1,5 +1,5 @@
 """
-Bidding routes: Placing bids, proxy bids, and viewing bid history
+Bidding routes: Placing bids, proxy bids, buy-it-now, and viewing bid history
 """
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query
@@ -8,9 +8,14 @@ from typing import List
 
 from app.config.database import get_db
 from app.models.user import User, UserRole
-from app.schemas.bidding import BidCreate, BidResponse, BidHistoryItem, ProxyBidCreate, ProxyBidResponse
+from app.schemas.bidding import (
+    BidCreate, BidResponse, BidHistoryItem,
+    ProxyBidCreate, ProxyBidResponse,
+    BuyItNowResponse,
+)
 from app.services.bidding_crud import place_bid, get_auction_bids
 from app.services.proxy_bid_service import set_proxy_bid
+from app.services.buy_it_now_service import buy_it_now
 from app.services.auction_crud import get_auction_by_id
 from app.utils.auth_dependency import get_current_user
 
@@ -80,4 +85,26 @@ def set_proxy_bid_endpoint(
         bidder=current_user,
         max_amount=proxy_data.max_amount,
     )
+
+
+# ── Phase 10: Buy It Now ───────────────────────────────────────
+
+@router.post("/auctions/{auction_id}/buy-now", response_model=BuyItNowResponse, status_code=status.HTTP_201_CREATED)
+def buy_it_now_endpoint(
+    auction_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Instantly purchase an auction item at the Buy-It-Now price.
+
+    - Auction ends immediately (status → sold).
+    - Buyer becomes the winner.
+    - WonAuction record is created (payment pending).
+    - All proxy bids for this auction are deactivated.
+    - The BIN price overrides any existing current bid.
+
+    Only available when the auction has a Buy-It-Now price set and is active.
+    """
+    return buy_it_now(db=db, auction_id=auction_id, bidder=current_user)
 
