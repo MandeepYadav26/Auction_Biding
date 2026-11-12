@@ -24,6 +24,7 @@ from app.routes.auth    import router as auth_router
 from app.routes.seller  import router as seller_router
 from app.routes.admin   import router as admin_router
 from app.routes.bidding import router as bidding_router
+from app.routes.bidder  import router as bidder_router  # Phase 11
 
 # Phase 9: background scheduler
 from app.scheduler import start_scheduler, stop_scheduler
@@ -96,6 +97,7 @@ app.include_router(auth_router)
 app.include_router(seller_router)
 app.include_router(admin_router)
 app.include_router(bidding_router)
+app.include_router(bidder_router)   # Phase 11: Watchlist + My Bids + Won Auctions
 
 # ── Root endpoints ─────────────────────────────────────────────
 

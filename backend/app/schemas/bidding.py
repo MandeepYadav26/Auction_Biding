@@ -5,7 +5,7 @@ Pydantic schemas for Bids, ProxyBid, Watchlist, WonAuction, Invoice
 from pydantic import BaseModel, field_validator
 from datetime import datetime
 from decimal import Decimal
-from typing import Optional
+from typing import Optional, List
 from app.models.bid import BidType
 from app.models.won_auction import PaymentStatus
 from app.models.auction import AuctionStatus
@@ -80,11 +80,44 @@ class WatchlistCreate(BaseModel):
     auction_id: int
 
 
+class WatchlistAuctionSummary(BaseModel):
+    """Minimal auction info embedded in watchlist response."""
+    id:               int
+    title:            str
+    current_bid:      Optional[Decimal]
+    buy_it_now_price: Optional[Decimal]
+    end_time:         datetime
+    status:           AuctionStatus
+    total_bids:       int
+    image:            Optional[str]
+
+    class Config:
+        from_attributes = True
+
+
 class WatchlistResponse(BaseModel):
     id:         int
     auction_id: int
     bidder_id:  int
     created_at: datetime
+    auction:    Optional[WatchlistAuctionSummary] = None   # embedded auction info
+
+    class Config:
+        from_attributes = True
+
+
+# ── My Bids ───────────────────────────────────────────────────
+
+class MyBidItem(BaseModel):
+    """A bid placed by the current bidder, with auction context."""
+    id:            int
+    auction_id:    int
+    auction_title: Optional[str] = None
+    auction_status: Optional[AuctionStatus] = None
+    amount:        Decimal
+    bid_type:      BidType
+    created_at:    datetime
+    is_winning:    bool = False   # True if this bidder is currently the highest bidder
 
     class Config:
         from_attributes = True
