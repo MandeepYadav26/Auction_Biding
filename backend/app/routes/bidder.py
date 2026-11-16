@@ -1,19 +1,8 @@
 """
-Phase 11 — Bidder Routes
+Phase 11 + 12 — Bidder Routes
 
-Endpoints:
-  Watchlist:
-    POST   /watchlist                     → Add auction to watchlist
-    GET    /watchlist                     → View my watchlist
-    DELETE /watchlist/{id}               → Remove by watchlist entry id
-    DELETE /watchlist/auction/{auction_id} → Remove by auction id
-
-  My Bids:
-    GET    /bidder/my-bids               → All bids I have placed
-
-  Won Auctions:
-    GET    /bidder/won-auctions          → Auctions I have won
-    GET    /bidder/won-auctions/{id}     → Single won auction detail
+Phase 11 — Watchlist + My Bids + Won Auctions
+Phase 12 — Payment + Invoice
 """
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query
@@ -28,6 +17,9 @@ from app.schemas.bidding import (
     WatchlistResponse,
     MyBidItem,
     WonAuctionResponse,
+    PaymentCreate,
+    PaymentResponse,
+    InvoiceDetailResponse,
 )
 from app.services.bidder_crud import (
     add_to_watchlist,
@@ -38,6 +30,7 @@ from app.services.bidder_crud import (
     get_my_won_auctions,
     get_won_auction_by_id,
 )
+from app.services.payment_service import process_payment, get_invoice
 from app.utils.auth_dependency import get_current_user
 
 router = APIRouter(tags=["Bidder"])
@@ -156,3 +149,83 @@ def won_auction_detail(
             detail="Won auction not found or does not belong to you.",
         )
     return won
+
+
+# ── Phase 12: Payment + Invoice ───────────────────────────────
+
+@router.post("/bidder/won-auctions/{won_auction_id}/pay", response_model=PaymentResponse)
+def make_payment(
+    won_auction_id: int,
+    payment_data: PaymentCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Simulate payment for a won auction.
+
+    Submit your delivery address to complete the simulated payment.
+    After payment:
+    - payment_status changes from 'pending' → 'paid'
+    - An invoice is automatically generated (INV-YYYY-NNNN)
+
+    This is a simulated payment for university project purposes.
+    No real payment gateway is involved.
+    """
+    won = process_payment(
+        db=db,
+        won_auction_id=won_auction_id,
+        bidder_id=current_user.id,
+        delivery_address=payment_data.delivery_address,
+    )
+    # Build response with invoice number
+    invoice_number = won.invoice.invoice_number if won.invoice else None
+    return PaymentResponse(
+        won_auction_id=won.id,
+        auction_id=won.auction_id,
+        winning_amount=won.winning_amount,
+        payment_status=won.payment_status,
+        delivery_address=won.delivery_address,
+        paid_at=won.paid_at,
+        invoice_number=invoice_number,
+    )
+
+
+@router.get("/bidder/won-auctions/{won_auction_id}/invoice", response_model=InvoiceDetailResponse)
+def get_my_invoice(
+    won_auction_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    View the invoice for a won auction.
+
+    Only available after payment is completed.
+    Shows invoice number, amount, auction title, delivery address, and bidder info.
+    """
+    # First verify this won_auction belongs to the user
+    won = get_won_auction_by_id(db, won_auction_id=won_auction_id, bidder_id=current_user.id)
+    if not won:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Won auction not found or does not belong to you.",
+        )
+
+    invoice = get_invoice(db, won_auction_id=won_auction_id, bidder_id=current_user.id)
+    if not invoice:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Invoice not found. Please complete payment first.",
+        )
+
+    return InvoiceDetailResponse(
+        invoice_number=invoice.invoice_number,
+        amount=invoice.amount,
+        created_at=invoice.created_at,
+        auction_id=won.auction_id,
+        auction_title=won.auction.title if won.auction else None,
+        payment_status=won.payment_status,
+        delivery_address=won.delivery_address,
+        paid_at=won.paid_at,
+        bidder_id=current_user.id,
+        bidder_name=current_user.name,
+    )

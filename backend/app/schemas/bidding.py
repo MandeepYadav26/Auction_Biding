@@ -143,6 +143,20 @@ class PaymentCreate(BaseModel):
     delivery_address: str
 
 
+class PaymentResponse(BaseModel):
+    """Returned after a successful simulated payment."""
+    won_auction_id:   int
+    auction_id:       int
+    winning_amount:   Decimal
+    payment_status:   PaymentStatus
+    delivery_address: Optional[str]
+    paid_at:          Optional[datetime]
+    invoice_number:   Optional[str] = None   # populated after payment
+
+    class Config:
+        from_attributes = True
+
+
 # ── Invoice ───────────────────────────────────────────────────
 
 class InvoiceResponse(BaseModel):
@@ -151,6 +165,26 @@ class InvoiceResponse(BaseModel):
     invoice_number: str
     amount:         Decimal
     created_at:     datetime
+
+    class Config:
+        from_attributes = True
+
+
+class InvoiceDetailResponse(BaseModel):
+    """Full invoice with auction and bidder context — for the invoice view/download page."""
+    invoice_number:   str
+    amount:           Decimal
+    created_at:       datetime
+    # Auction info
+    auction_id:       int
+    auction_title:    Optional[str] = None
+    # Payment info
+    payment_status:   PaymentStatus
+    delivery_address: Optional[str] = None
+    paid_at:          Optional[datetime] = None
+    # Bidder info
+    bidder_id:        int
+    bidder_name:      Optional[str] = None
 
     class Config:
         from_attributes = True
