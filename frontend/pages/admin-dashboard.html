@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Dashboard — AuctionHub</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="../css/style.css"/>
+</head>
+<body>
+  <div id="main-nav"></div>
+  <div id="toast-container" class="toast-container position-fixed top-0 end-0 p-3" style="z-index:9999"></div>
+
+  <div class="container mt-4">
+    <h4 class="fw-bold mb-4">⚙️ Admin Dashboard</h4>
+
+    <!-- Stats Row -->
+    <div class="row g-3 mb-5" id="stats-row">
+      <div class="col-6 col-md-3"><div class="card stat-card text-center p-3"><div class="stat-number text-primary" id="st-users">—</div><div class="text-muted small">Total Users</div></div></div>
+      <div class="col-6 col-md-3"><div class="card stat-card text-center p-3"><div class="stat-number text-success" id="st-auctions">—</div><div class="text-muted small">Total Auctions</div></div></div>
+      <div class="col-6 col-md-3"><div class="card stat-card text-center p-3"><div class="stat-number text-warning" id="st-pending">—</div><div class="text-muted small">Pending Approval</div></div></div>
+      <div class="col-6 col-md-3"><div class="card stat-card text-center p-3"><div class="stat-number text-info" id="st-bids">—</div><div class="text-muted small">Total Bids</div></div></div>
+    </div>
+
+    <!-- Pending Auctions -->
+    <h5 class="section-title">📋 Pending Auctions (Awaiting Approval)</h5>
+    <div id="pending-container">
+      <div class="loading-overlay"><div class="spinner-border text-secondary"></div></div>
+    </div>
+  </div>
+
+  <footer class="text-center"><div class="container"><p class="mb-0">© 2025 AuctionHub</p></div></footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/auth.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      if (!requireAuth("admin")) return;
+      renderNav();
+      await loadStats();
+      await loadPending();
+    });
+
+    async function loadStats() {
+      try {
+        const s = await AdminAPI.getStats();
+        document.getElementById("st-users").textContent    = s.total_users    ?? "—";
+        document.getElementById("st-auctions").textContent = s.total_auctions  ?? "—";
+        document.getElementById("st-pending").textContent  = s.pending_auctions ?? "—";
+        document.getElementById("st-bids").textContent     = s.total_bids      ?? "—";
+      } catch (_) {}
+    }
+
+    async function loadPending() {
+      const container = document.getElementById("pending-container");
+      try {
+        const auctions = await AdminAPI.getPendingAuctions();
+        if (!auctions.length) {
+          container.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-icon">✅</div>
+              <h5>All caught up!</h5>
+              <p>No auctions pending approval right now.</p>
+            </div>`;
+          return;
+        }
+
+        container.innerHTML = `
+          <div class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead class="table-dark">
+                <tr>
+                  <th>Title</th>
+                  <th>Seller</th>
+                  <th>Starting Price</th>
+                  <th>Start Time</th>
+                  <th>End Time</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="pending-tbody">
+                ${auctions.map(a => renderPendingRow(a)).join("")}
+              </tbody>
+            </table>
+          </div>`;
+      } catch (err) {
+        container.innerHTML = `<div class="alert alert-danger">${err.message}</div>`;
+      }
+    }
+
+    function renderPendingRow(a) {
+      return `
+        <tr id="row-${a.id}">
+          <td>
+            <strong>${a.title}</strong><br/>
+            <small class="text-muted">${a.description ? a.description.slice(0, 60) + "..." : ""}</small>
+          </td>
+          <td>${a.seller_name || "—"}</td>
+          <td>${formatCurrency(a.starting_price)}</td>
+          <td><small>${formatDate(a.start_time)}</small></td>
+          <td><small>${formatDate(a.end_time)}</small></td>
+          <td>
+            <div class="d-flex gap-1">
+              <button class="btn btn-sm btn-success" onclick="approveAuction(${a.id})">✅ Approve</button>
+              <button class="btn btn-sm btn-danger" onclick="rejectAuction(${a.id})">❌ Reject</button>
+              <a href="auction-detail.html?id=${a.id}" class="btn btn-sm btn-outline-secondary">👁️ View</a>
+            </div>
+          </td>
+        </tr>`;
+    }
+
+    async function approveAuction(id) {
+      try {
+        await AdminAPI.approveAuction(id);
+        document.getElementById(`row-${id}`).remove();
+        showToast("✅ Auction approved!", "success");
+        loadStats();
+      } catch (err) {
+        showToast("❌ " + err.message, "danger");
+      }
+    }
+
+    async function rejectAuction(id) {
+      const reason = prompt("Enter rejection reason (optional):");
+      if (reason === null) return; // cancelled
+      try {
+        await AdminAPI.rejectAuction(id, reason || "Rejected by admin");
+        document.getElementById(`row-${id}`).remove();
+        showToast("Auction rejected.", "warning");
+        loadStats();
+      } catch (err) {
+        showToast("❌ " + err.message, "danger");
+      }
+    }
+  </script>
+</body>
+</html>

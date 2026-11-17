@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Won Auctions — AuctionHub</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="../css/style.css"/>
+</head>
+<body>
+  <div id="main-nav"></div>
+  <div id="toast-container" class="toast-container position-fixed top-0 end-0 p-3" style="z-index:9999"></div>
+
+  <div class="container mt-4">
+    <h4 class="fw-bold mb-3">🏆 Won Auctions</h4>
+    <div id="won-container">
+      <div class="loading-overlay"><div class="spinner-border text-secondary"></div></div>
+    </div>
+  </div>
+
+  <footer class="text-center"><div class="container"><p class="mb-0">© 2025 AuctionHub</p></div></footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/auth.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      if (!requireAuth("bidder")) return;
+      renderNav();
+      await loadWonAuctions();
+    });
+
+    async function loadWonAuctions() {
+      const container = document.getElementById("won-container");
+      try {
+        const items = await BidderAPI.getWonAuctions();
+        if (!items.length) {
+          container.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-icon">🏆</div>
+              <h5>No won auctions yet</h5>
+              <p>Keep bidding! Your wins will appear here.</p>
+            </div>`;
+          return;
+        }
+
+        container.innerHTML = `
+          <div class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead class="table-dark">
+                <tr>
+                  <th>Auction</th>
+                  <th>Winning Bid</th>
+                  <th>Won At</th>
+                  <th>Payment</th>
+                  <th>Invoice</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                ${items.map(w => `
+                  <tr>
+                    <td><strong>${w.auction_title || "Auction #" + w.auction_id}</strong></td>
+                    <td class="text-success fw-bold">${formatCurrency(w.winning_bid)}</td>
+                    <td>${formatDate(w.created_at)}</td>
+                    <td>
+                      ${w.is_paid
+                        ? '<span class="badge bg-success">✅ Paid</span>'
+                        : `<a href="payment.html?won_id=${w.id}" class="btn btn-sm btn-warning">💳 Pay Now</a>`}
+                    </td>
+                    <td>
+                      ${w.invoice_id
+                        ? `<a href="payment.html?invoice_id=${w.invoice_id}" class="btn btn-sm btn-outline-dark">📄 View Invoice</a>`
+                        : '—'}
+                    </td>
+                    <td>
+                      <a href="auction-detail.html?id=${w.auction_id}" class="btn btn-sm btn-outline-secondary">View</a>
+                    </td>
+                  </tr>`).join("")}
+              </tbody>
+            </table>
+          </div>`;
+      } catch (err) {
+        container.innerHTML = `<div class="alert alert-danger">${err.message}</div>`;
+      }
+    }
+  </script>
+</body>
+</html>

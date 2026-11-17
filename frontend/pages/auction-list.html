@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Browse Auctions — AuctionHub</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="../css/style.css"/>
+</head>
+<body>
+
+  <div id="main-nav"></div>
+  <div id="toast-container" class="toast-container position-fixed top-0 end-0 p-3" style="z-index:9999"></div>
+
+  <div class="container mt-4">
+    <h4 class="fw-bold mb-3">🛒 Browse Auctions</h4>
+
+    <!-- Filters -->
+    <div class="row g-2 mb-4">
+      <div class="col-md-5">
+        <input type="text" class="form-control" id="search-input" placeholder="Search auctions..."/>
+      </div>
+      <div class="col-md-3">
+        <select class="form-select" id="category-filter">
+          <option value="">All Categories</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <select class="form-select" id="status-filter">
+          <option value="approved">Active</option>
+          <option value="">All Status</option>
+          <option value="ended">Ended</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <button class="btn btn-dark w-100" id="search-btn">🔍 Search</button>
+      </div>
+    </div>
+
+    <!-- Results grid -->
+    <div id="auctions-row" class="row g-3">
+      <div class="col-12 loading-overlay"><div class="spinner-border text-secondary"></div></div>
+    </div>
+
+    <!-- Pagination -->
+    <div id="pagination" class="d-flex justify-content-center mt-4 gap-2"></div>
+  </div>
+
+  <footer class="text-center">
+    <div class="container"><p class="mb-0">© 2025 AuctionHub</p></div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/auth.js"></script>
+  <script>
+    let currentPage = 1;
+    const PAGE_SIZE = 12;
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      renderNav();
+      await loadCategories();
+      await loadAuctions();
+
+      document.getElementById("search-btn").addEventListener("click", () => {
+        currentPage = 1;
+        loadAuctions();
+      });
+      document.getElementById("search-input").addEventListener("keyup", (e) => {
+        if (e.key === "Enter") { currentPage = 1; loadAuctions(); }
+      });
+    });
+
+    async function loadCategories() {
+      try {
+        const cats = await PublicAPI.getCategories();
+        const sel = document.getElementById("category-filter");
+        cats.forEach(c => {
+          const opt = document.createElement("option");
+          opt.value = c.id;
+          opt.textContent = c.name;
+          sel.appendChild(opt);
+        });
+      } catch (_) {}
+    }
+
+    async function loadAuctions() {
+      const row = document.getElementById("auctions-row");
+      row.innerHTML = `<div class="col-12 loading-overlay"><div class="spinner-border text-secondary"></div></div>`;
+
+      const params = {
+        skip: (currentPage - 1) * PAGE_SIZE,
+        limit: PAGE_SIZE,
+      };
+      const search = document.getElementById("search-input").value.trim();
+      const cat    = document.getElementById("category-filter").value;
+      const status = document.getElementById("status-filter").value;
+      if (search) params.search      = search;
+      if (cat)    params.category_id = cat;
+      if (status) params.status      = status;
+
+      try {
+        const auctions = await PublicAPI.getAuctions(params);
+        if (!auctions.length) {
+          row.innerHTML = `
+            <div class="col-12 empty-state">
+              <div class="empty-icon">🔍</div>
+              <h5>No auctions found</h5>
+              <p>Try adjusting your search or filters.</p>
+            </div>`;
+          document.getElementById("pagination").innerHTML = "";
+          return;
+        }
+
+        row.innerHTML = auctions.map(a => {
+          const bid = a.current_bid != null ? formatCurrency(a.current_bid) : formatCurrency(a.starting_price);
+          const bin = a.buy_it_now_price ? `<div class="small text-muted">BIN: ${formatCurrency(a.buy_it_now_price)}</div>` : "";
+          return `
+            <div class="col-sm-6 col-lg-4 col-xl-3">
+              <div class="card auction-card h-100 cursor-pointer" onclick="window.location.href='auction-detail.html?id=${a.id}'">
+                <div class="card-img-top d-flex align-items-center justify-content-center bg-light" style="height:140px;font-size:2.5rem;">🏷️</div>
+                <div class="card-body d-flex flex-column">
+                  <h6 class="card-title fw-bold mb-1">${a.title}</h6>
+                  <p class="text-muted small mb-2">${a.category_name || "Uncategorized"}</p>
+                  <div class="current-bid">${bid}</div>
+                  ${bin}
+                  <div class="mt-auto pt-2 d-flex justify-content-between align-items-center">
+                    <span class="countdown small" data-end="${a.end_time}">⏳</span>
+                    ${statusBadge(a.status)}
+                  </div>
+                </div>
+              </div>
+            </div>`;
+        }).join("");
+
+        // Start countdowns
+        document.querySelectorAll(".countdown[data-end]").forEach(el => {
+          const end = el.dataset.end;
+          const update = () => { el.textContent = formatCountdown(end); };
+          update();
+          setInterval(update, 1000);
+        });
+
+        renderPagination(auctions.length);
+      } catch (err) {
+        row.innerHTML = `<div class="col-12 text-center text-danger p-4">${err.message}</div>`;
+      }
+    }
+
+    function renderPagination(count) {
+      const pg = document.getElementById("pagination");
+      pg.innerHTML = "";
+      if (count < PAGE_SIZE && currentPage === 1) return;
+      if (currentPage > 1) {
+        const prev = document.createElement("button");
+        prev.className = "btn btn-outline-dark btn-sm";
+        prev.textContent = "← Prev";
+        prev.onclick = () => { currentPage--; loadAuctions(); };
+        pg.appendChild(prev);
+      }
+      const info = document.createElement("span");
+      info.className = "btn btn-light btn-sm disabled";
+      info.textContent = `Page ${currentPage}`;
+      pg.appendChild(info);
+      if (count === PAGE_SIZE) {
+        const next = document.createElement("button");
+        next.className = "btn btn-dark btn-sm";
+        next.textContent = "Next →";
+        next.onclick = () => { currentPage++; loadAuctions(); };
+        pg.appendChild(next);
+      }
+    }
+  </script>
+</body>
+</html>

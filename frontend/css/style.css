@@ -1,0 +1,179 @@
+/* ============================================================
+   style.css — Global styles for AuctionHub
+   ============================================================ */
+
+/* ── Root variables ─────────────────────────────────────────── */
+:root {
+  --primary: #212529;
+  --accent:  #f4c430;
+  --card-radius: 12px;
+  --transition: 0.2s ease;
+}
+
+/* ── Base ────────────────────────────────────────────────────── */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f8f9fa;
+  color: #212529;
+}
+
+/* ── Navbar tweaks ───────────────────────────────────────────── */
+.navbar-brand {
+  font-size: 1.4rem;
+  letter-spacing: 0.5px;
+}
+
+/* ── Auction card ────────────────────────────────────────────── */
+.auction-card {
+  border: none;
+  border-radius: var(--card-radius);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  transition: transform var(--transition), box-shadow var(--transition);
+  overflow: hidden;
+}
+
+.auction-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.14);
+}
+
+.auction-card .card-img-top {
+  height: 180px;
+  object-fit: cover;
+  background: #dee2e6;
+}
+
+.auction-card .card-body {
+  padding: 1rem;
+}
+
+.auction-card .current-bid {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #198754;
+}
+
+.auction-card .countdown {
+  font-size: 0.82rem;
+  color: #dc3545;
+  font-weight: 600;
+}
+
+/* ── Hero banner (index.html) ────────────────────────────────── */
+.hero-banner {
+  background: linear-gradient(135deg, #212529 0%, #343a40 100%);
+  color: #fff;
+  padding: 60px 0;
+  margin-bottom: 40px;
+}
+
+.hero-banner h1 {
+  font-size: 2.6rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+.hero-banner .search-bar {
+  max-width: 540px;
+  margin: 0 auto;
+}
+
+/* ── Section headers ─────────────────────────────────────────── */
+.section-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  border-left: 4px solid var(--accent);
+  padding-left: 10px;
+  margin-bottom: 20px;
+}
+
+/* ── Bid history table ───────────────────────────────────────── */
+.bid-history-table td, .bid-history-table th {
+  vertical-align: middle;
+}
+
+/* ── Countdown badge ─────────────────────────────────────────── */
+.countdown-badge {
+  background: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffc107;
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: inline-block;
+}
+
+/* ── Loading spinner overlay ─────────────────────────────────── */
+.loading-overlay {
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Empty state ─────────────────────────────────────────────── */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #6c757d;
+}
+
+.empty-state .empty-icon {
+  font-size: 3rem;
+  margin-bottom: 10px;
+}
+
+/* ── Auction detail page ─────────────────────────────────────── */
+.detail-price-box {
+  background: #f8f9fa;
+  border-radius: 10px;
+  padding: 20px;
+  border: 1px solid #dee2e6;
+}
+
+.detail-price-box .price-label {
+  font-size: 0.85rem;
+  color: #6c757d;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.detail-price-box .price-value {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #198754;
+}
+
+/* ── Stats cards (admin/seller dashboard) ────────────────────── */
+.stat-card {
+  border: none;
+  border-radius: var(--card-radius);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.stat-card .stat-number {
+  font-size: 2.2rem;
+  font-weight: 800;
+}
+
+/* ── Responsive table wrapper ────────────────────────────────── */
+.table-responsive {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+/* ── Footer ──────────────────────────────────────────────────── */
+footer {
+  background: #212529;
+  color: #adb5bd;
+  padding: 20px 0;
+  margin-top: 60px;
+  font-size: 0.88rem;
+}
+
+/* ── Utility ─────────────────────────────────────────────────── */
+.cursor-pointer { cursor: pointer; }
+.fw-800 { font-weight: 800; }
+.text-accent { color: var(--accent); }

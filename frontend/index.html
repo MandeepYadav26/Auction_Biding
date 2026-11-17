@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AuctionHub — Bid. Win. Sell.</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <div id="main-nav"></div>
+
+  <!-- Toast -->
+  <div id="toast-container" class="toast-container position-fixed top-0 end-0 p-3" style="z-index:9999"></div>
+
+  <!-- Hero Banner -->
+  <section class="hero-banner text-center">
+    <div class="container">
+      <h1>🔨 AuctionHub</h1>
+      <p class="lead mb-4">Discover unique items. Place your bids. Win great deals.</p>
+      <!-- Search bar -->
+      <div class="search-bar">
+        <div class="input-group input-group-lg">
+          <input type="text" class="form-control" id="hero-search" placeholder="Search auctions…"/>
+          <button class="btn btn-warning fw-bold" id="hero-search-btn">Search</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Content -->
+  <div class="container">
+
+    <!-- Category Filter -->
+    <div class="mb-4">
+      <div id="category-pills" class="d-flex flex-wrap gap-2">
+        <button class="btn btn-sm btn-dark active-cat" data-cat="">All Categories</button>
+      </div>
+    </div>
+
+    <!-- Ending Soon -->
+    <div id="ending-soon-section">
+      <h5 class="section-title">⏰ Ending Soon</h5>
+      <div id="ending-soon-row" class="row g-3 mb-5">
+        <div class="col-12 loading-overlay"><div class="spinner-border text-secondary"></div></div>
+      </div>
+    </div>
+
+    <!-- Active Auctions -->
+    <h5 class="section-title">🛒 Active Auctions</h5>
+    <div id="auctions-row" class="row g-3">
+      <div class="col-12 loading-overlay"><div class="spinner-border text-secondary"></div></div>
+    </div>
+
+    <!-- Pagination -->
+    <div id="pagination" class="d-flex justify-content-center mt-4 gap-2"></div>
+
+  </div>
+
+  <!-- Footer -->
+  <footer class="text-center">
+    <div class="container">
+      <p class="mb-0">© 2025 AuctionHub — University Project</p>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    let currentPage = 1;
+    let currentCategory = "";
+    let currentSearch = "";
+    const PAGE_SIZE = 9;
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      renderNav();
+      await loadCategories();
+      await loadEndingSoon();
+      await loadAuctions();
+
+      // Hero search
+      document.getElementById("hero-search-btn").addEventListener("click", () => {
+        currentSearch = document.getElementById("hero-search").value.trim();
+        currentPage = 1;
+        loadAuctions();
+      });
+      document.getElementById("hero-search").addEventListener("keyup", (e) => {
+        if (e.key === "Enter") document.getElementById("hero-search-btn").click();
+      });
+    });
+
+    // ── Load categories as filter pills ───────────────────────
+    async function loadCategories() {
+      try {
+        const cats = await PublicAPI.getCategories();
+        const container = document.getElementById("category-pills");
+        cats.forEach(cat => {
+          const btn = document.createElement("button");
+          btn.className = "btn btn-sm btn-outline-dark";
+          btn.textContent = cat.name;
+          btn.dataset.cat = cat.id;
+          btn.addEventListener("click", () => {
+            document.querySelectorAll(".active-cat").forEach(b => b.classList.remove("active-cat", "btn-dark"));
+            btn.classList.add("active-cat", "btn-dark");
+            currentCategory = cat.id;
+            currentPage = 1;
+            loadAuctions();
+          });
+          container.appendChild(btn);
+        });
+
+        // "All" button click
+        container.querySelector("[data-cat='']").addEventListener("click", (e) => {
+          document.querySelectorAll(".active-cat").forEach(b => b.classList.remove("active-cat", "btn-dark"));
+          e.target.classList.add("active-cat", "btn-dark");
+          currentCategory = "";
+          currentPage = 1;
+          loadAuctions();
+        });
+      } catch (_) {}
+    }
+
+    // ── Load ending soon auctions ──────────────────────────────
+    async function loadEndingSoon() {
+      const row = document.getElementById("ending-soon-row");
+      try {
+        const auctions = await PublicAPI.getEndingSoon();
+        if (!auctions.length) {
+          document.getElementById("ending-soon-section").classList.add("d-none");
+          return;
+        }
+        row.innerHTML = auctions.slice(0, 4).map(renderCard).join("");
+        startCountdowns();
+      } catch (_) {
+        document.getElementById("ending-soon-section").classList.add("d-none");
+      }
+    }
+
+    // ── Load main auctions grid ────────────────────────────────
+    async function loadAuctions() {
+      const row = document.getElementById("auctions-row");
+      row.innerHTML = `<div class="col-12 loading-overlay"><div class="spinner-border text-secondary"></div></div>`;
+
+      try {
+        const params = {
+          skip: (currentPage - 1) * PAGE_SIZE,
+          limit: PAGE_SIZE,
+        };
+        if (currentCategory) params.category_id = currentCategory;
+        if (currentSearch)   params.search = currentSearch;
+
+        const auctions = await PublicAPI.getAuctions(params);
+
+        if (!auctions.length) {
+          row.innerHTML = `
+            <div class="col-12 empty-state">
+              <div class="empty-icon">🔍</div>
+              <h5>No auctions found</h5>
+              <p>Try a different search or category.</p>
+            </div>`;
+          document.getElementById("pagination").innerHTML = "";
+          return;
+        }
+
+        row.innerHTML = auctions.map(renderCard).join("");
+        startCountdowns();
+        renderPagination(auctions.length);
+      } catch (err) {
+        row.innerHTML = `<div class="col-12 text-center text-danger p-4">Failed to load auctions: ${err.message}</div>`;
+      }
+    }
+
+    // ── Render single auction card HTML ────────────────────────
+    function renderCard(a) {
+      const bid = a.current_bid != null ? formatCurrency(a.current_bid) : (a.starting_price ? formatCurrency(a.starting_price) : "No bids");
+      const bin = a.buy_it_now_price ? `<small class="text-muted">BIN: ${formatCurrency(a.buy_it_now_price)}</small>` : "";
+      return `
+        <div class="col-sm-6 col-lg-4">
+          <div class="card auction-card h-100 cursor-pointer" onclick="window.location.href='pages/auction-detail.html?id=${a.id}'">
+            <div class="card-img-top d-flex align-items-center justify-content-center bg-light" style="height:160px;font-size:3rem;">
+              🏷️
+            </div>
+            <div class="card-body d-flex flex-column">
+              <h6 class="card-title fw-bold mb-1">${a.title}</h6>
+              <p class="text-muted small mb-2">${a.category_name || "Uncategorized"}</p>
+              <div class="current-bid mb-1">${bid}</div>
+              ${bin}
+              <div class="mt-auto pt-2 d-flex justify-content-between align-items-center">
+                <span class="countdown" data-end="${a.end_time}">⏳ Loading...</span>
+                ${statusBadge(a.status)}
+              </div>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    // ── Live countdown updater ─────────────────────────────────
+    function startCountdowns() {
+      document.querySelectorAll(".countdown[data-end]").forEach(el => {
+        const end = el.dataset.end;
+        const update = () => { el.textContent = formatCountdown(end); };
+        update();
+        setInterval(update, 1000);
+      });
+    }
+
+    // ── Pagination ─────────────────────────────────────────────
+    function renderPagination(count) {
+      const pg = document.getElementById("pagination");
+      pg.innerHTML = "";
+      if (count < PAGE_SIZE && currentPage === 1) return;
+
+      if (currentPage > 1) {
+        const prev = document.createElement("button");
+        prev.className = "btn btn-outline-dark btn-sm";
+        prev.textContent = "← Prev";
+        prev.onclick = () => { currentPage--; loadAuctions(); };
+        pg.appendChild(prev);
+      }
+      if (count === PAGE_SIZE) {
+        const next = document.createElement("button");
+        next.className = "btn btn-dark btn-sm";
+        next.textContent = "Next →";
+        next.onclick = () => { currentPage++; loadAuctions(); };
+        pg.appendChild(next);
+      }
+    }
+  </script>
+</body>
+</html>
