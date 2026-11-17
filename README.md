@@ -95,23 +95,23 @@ API Docs: http://127.0.0.1:8000/docs
 
 | Phase | Topic                  | Status  |
 |-------|------------------------|---------|
-| 0     | Planning               | ✅ Done |
-| 1     | Environment Setup      | ✅ Done |
-| 2     | MySQL Database         | ⏳ Next |
-| 3     | FastAPI + SQLAlchemy   | ⏳      |
-| 4     | Auth (JWT)             | ⏳      |
-| 5     | Seller Module          | ⏳      |
-| 6     | Admin Module           | ⏳      |
-| 7     | Normal Bidding         | ⏳      |
-| 8     | Proxy Bidding          | ⏳      |
-| 9     | Auction Ending         | ⏳      |
-| 10    | Buy It Now             | ⏳      |
-| 11    | Watchlist + My Bids    | ⏳      |
-| 12    | Winner + Payment       | ⏳      |
-| 13    | Frontend Polish        | ⏳      |
-| 14    | AI Description Gen     | ⏳      |
-| 15    | ML Price Prediction    | ⏳      |
-| 16    | Testing                | ⏳      |
+| 0     | Planning               |  Done   |
+| 1     | Environment Setup      |  Done   |
+| 2     | MySQL Database         |  Done   |
+| 3     | FastAPI + SQLAlchemy   |  Done   |
+| 4     | Auth (JWT)             |  Done   |
+| 5     | Seller Module          |  Done   |
+| 6     | Admin Module           |  Done   |
+| 7     | Normal Bidding         |  Done   |
+| 8     | Proxy Bidding          |  Done   |
+| 9     | Auction Ending         |  Done   |
+| 10    | Buy It Now             |  Done   |
+| 11    | Watchlist + My Bids    |  Done   |
+| 12    | Winner + Payment       |  Done   |
+| 13    | Frontend Polish        |  Done   |
+| 14    | AI Description Gen     |  Done   |
+| 15    | ML Price Prediction    |  next   |
+| 16    | Testing                | pending |
 
 ---
 
