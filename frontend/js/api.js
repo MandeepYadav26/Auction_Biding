@@ -28,7 +28,7 @@ async function apiFetch(endpoint, options = {}) {
     headers,
   });
 
-  // Handle non-2xx responses
+  // Handle non-200 responses
   if (!response.ok) {
     let errorMsg = `HTTP ${response.status}`;
     try {
@@ -38,8 +38,9 @@ async function apiFetch(endpoint, options = {}) {
     throw new Error(errorMsg);
   }
 
-  // Return null for 204 No Content
-  if (response.status === 204) return null;
+  // Return null for No Content
+  if (response.status === 204) 
+    return null;
 
   return response.json();
 }

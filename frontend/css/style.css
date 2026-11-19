@@ -177,3 +177,94 @@ footer {
 .cursor-pointer { cursor: pointer; }
 .fw-800 { font-weight: 800; }
 .text-accent { color: var(--accent); }
+
+/* ── Countdown blocks (Phase 14) ─────────────────────────────── */
+.cd-blocks {
+  padding: 12px 0;
+}
+
+.cd-block {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 10px;
+  min-width: 68px;
+  padding: 8px 12px;
+  transition: background var(--transition), border-color var(--transition);
+}
+
+.cd-block .cd-value {
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.cd-sep {
+  display: flex;
+  align-items: center;
+  color: #6c757d;
+}
+
+/* Urgency color states for the container */
+#detail-countdown[data-urgency="warning"] .cd-block {
+  background: #fff3cd;
+  border-color: #ffc107;
+}
+
+#detail-countdown[data-urgency="warning"] .cd-value {
+  color: #856404;
+}
+
+#detail-countdown[data-urgency="critical"] .cd-block {
+  background: #f8d7da;
+  border-color: #dc3545;
+  animation: pulse-red 1s ease-in-out infinite;
+}
+
+#detail-countdown[data-urgency="critical"] .cd-value {
+  color: #842029;
+}
+
+@keyframes pulse-red {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.3); }
+  50%       { box-shadow: 0 0 0 6px rgba(220, 53, 69, 0); }
+}
+
+/* Ending soon banner */
+.ending-soon-banner {
+  background: linear-gradient(90deg, #dc3545, #c0392b);
+  color: #fff;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-weight: 600;
+  animation: banner-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes banner-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.82; }
+}
+
+/* Auto-refresh indicator */
+.refresh-indicator {
+  font-size: 0.75rem;
+  color: #6c757d;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.refresh-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #198754;
+  animation: dot-blink 2s ease-in-out infinite;
+}
+
+@keyframes dot-blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.2; }
+}
+
+/* Countdown card in list pages */
+.countdown[data-end].text-warning { font-weight: 600; }
+.countdown[data-end].text-danger  { font-weight: 700; }

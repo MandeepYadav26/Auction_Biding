@@ -53,6 +53,7 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="../js/api.js"></script>
   <script src="../js/auth.js"></script>
+  <script src="../js/countdown.js"></script>
   <script>
     let currentPage = 1;
     const PAGE_SIZE = 12;
@@ -134,12 +135,7 @@
         }).join("");
 
         // Start countdowns
-        document.querySelectorAll(".countdown[data-end]").forEach(el => {
-          const end = el.dataset.end;
-          const update = () => { el.textContent = formatCountdown(end); };
-          update();
-          setInterval(update, 1000);
-        });
+        attachAllCountdowns();
 
         renderPagination(auctions.length);
       } catch (err) {
