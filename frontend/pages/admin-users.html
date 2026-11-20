@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
@@ -12,7 +12,7 @@
   <div id="toast-container" class="toast-container position-fixed top-0 end-0 p-3" style="z-index:9999"></div>
 
   <div class="container mt-4">
-    <h4 class="fw-bold mb-4">👥 User Management</h4>
+    <h4 class="fw-bold mb-4">User Management</h4>
     <div class="mb-3">
       <input type="text" class="form-control" id="user-search" placeholder="Filter by name or email..." style="max-width:400px"/>
     </div>
@@ -33,47 +33,31 @@
       if (!requireAuth("admin")) return;
       renderNav();
       await loadUsers();
-
       document.getElementById("user-search").addEventListener("input", filterUsers);
     });
 
     async function loadUsers() {
-      const container = document.getElementById("users-container");
       try {
         allUsers = await AdminAPI.getUsers();
         renderUsers(allUsers);
       } catch (err) {
-        container.innerHTML = `<div class="alert alert-danger">${err.message}</div>`;
+        document.getElementById("users-container").innerHTML = `<div class="alert alert-danger">${err.message}</div>`;
       }
     }
 
     function filterUsers() {
       const q = document.getElementById("user-search").value.toLowerCase();
-      const filtered = allUsers.filter(u =>
-        u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)
-      );
-      renderUsers(filtered);
+      renderUsers(allUsers.filter(u => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)));
     }
 
     function renderUsers(users) {
       const container = document.getElementById("users-container");
-      if (!users.length) {
-        container.innerHTML = `<p class="text-muted text-center p-4">No users found.</p>`;
-        return;
-      }
+      if (!users.length) { container.innerHTML = `<p class="text-muted text-center p-4">No users found.</p>`; return; }
       container.innerHTML = `
         <div class="table-responsive">
           <table class="table table-hover align-middle">
             <thead class="table-dark">
-              <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Role</th>
-                <th>Joined</th>
-                <th>Status</th>
-                <th>Action</th>
-              </tr>
+              <tr><th>ID</th><th>Name</th><th>Email</th><th>Role</th><th>Joined</th><th>Status</th><th>Action</th></tr>
             </thead>
             <tbody>
               ${users.map(u => `
@@ -83,19 +67,10 @@
                   <td>${u.email}</td>
                   <td><span class="badge bg-secondary">${u.role}</span></td>
                   <td><small>${formatDate(u.created_at)}</small></td>
-                  <td>
-                    ${u.is_active
-                      ? '<span class="badge bg-success">Active</span>'
-                      : '<span class="badge bg-danger">Deactivated</span>'}
-                  </td>
-                  <td>
-                    ${u.role !== "admin"
-                      ? `<button class="btn btn-sm ${u.is_active ? "btn-outline-danger" : "btn-outline-success"}"
-                           onclick="toggleUser(${u.id}, ${u.is_active})">
-                           ${u.is_active ? "🚫 Deactivate" : "✅ Activate"}
-                         </button>`
-                      : '<span class="text-muted small">—</span>'}
-                  </td>
+                  <td>${u.is_active ? '<span class="badge bg-success">Active</span>' : '<span class="badge bg-danger">Deactivated</span>'}</td>
+                  <td>${u.role !== "admin"
+                    ? `<button class="btn btn-sm ${u.is_active ? "btn-outline-danger" : "btn-outline-success"}" onclick="toggleUser(${u.id}, ${u.is_active})">${u.is_active ? "Deactivate" : "Activate"}</button>`
+                    : '<span class="text-muted small">—</span>'}</td>
                 </tr>`).join("")}
             </tbody>
           </table>
@@ -105,12 +80,10 @@
     async function toggleUser(id, currentlyActive) {
       if (!confirm(`${currentlyActive ? "Deactivate" : "Activate"} this user?`)) return;
       try {
-        await AdminAPI.toggleUser(id);
+        await AdminAPI.toggleUser(id, !currentlyActive);
         showToast(`User ${currentlyActive ? "deactivated" : "activated"}.`, currentlyActive ? "warning" : "success");
         await loadUsers();
-      } catch (err) {
-        showToast("❌ " + err.message, "danger");
-      }
+      } catch (err) { showToast(err.message, "danger"); }
     }
   </script>
 </body>

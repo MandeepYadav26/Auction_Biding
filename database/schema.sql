@@ -1,7 +1,3 @@
--- ============================================================
--- Auction Bidding Platform — SQL Schema Reference
--- Phase 2: Database Tables
--- ============================================================
 -- NOTE: Tables are created automatically by SQLAlchemy (init_db.py)
 -- This file is for reference/documentation only.
 

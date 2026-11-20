@@ -1,8 +1,3 @@
-"""
-Auction Bidding Platform — Main Entry Point
-Phase 9: Auction Ending Scheduler added
-"""
-
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles

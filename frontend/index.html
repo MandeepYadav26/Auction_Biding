@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
@@ -9,61 +9,46 @@
 </head>
 <body>
 
-  <!-- Navbar -->
   <div id="main-nav"></div>
-
-  <!-- Toast -->
   <div id="toast-container" class="toast-container position-fixed top-0 end-0 p-3" style="z-index:9999"></div>
 
-  <!-- Hero Banner -->
   <section class="hero-banner text-center">
     <div class="container">
-      <h1>🔨 AuctionHub</h1>
+      <h1>AuctionHub</h1>
       <p class="lead mb-4">Discover unique items. Place your bids. Win great deals.</p>
-      <!-- Search bar -->
       <div class="search-bar">
         <div class="input-group input-group-lg">
-          <input type="text" class="form-control" id="hero-search" placeholder="Search auctions…"/>
+          <input type="text" class="form-control" id="hero-search" placeholder="Search auctions..."/>
           <button class="btn btn-warning fw-bold" id="hero-search-btn">Search</button>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Main Content -->
   <div class="container">
-
-    <!-- Category Filter -->
     <div class="mb-4">
       <div id="category-pills" class="d-flex flex-wrap gap-2">
         <button class="btn btn-sm btn-dark active-cat" data-cat="">All Categories</button>
       </div>
     </div>
 
-    <!-- Ending Soon -->
     <div id="ending-soon-section">
-      <h5 class="section-title">⏰ Ending Soon</h5>
+      <h5 class="section-title">Ending Soon</h5>
       <div id="ending-soon-row" class="row g-3 mb-5">
         <div class="col-12 loading-overlay"><div class="spinner-border text-secondary"></div></div>
       </div>
     </div>
 
-    <!-- Active Auctions -->
-    <h5 class="section-title">🛒 Active Auctions</h5>
+    <h5 class="section-title">Active Auctions</h5>
     <div id="auctions-row" class="row g-3">
       <div class="col-12 loading-overlay"><div class="spinner-border text-secondary"></div></div>
     </div>
 
-    <!-- Pagination -->
     <div id="pagination" class="d-flex justify-content-center mt-4 gap-2"></div>
-
   </div>
 
-  <!-- Footer -->
   <footer class="text-center">
-    <div class="container">
-      <p class="mb-0">© 2025 AuctionHub — University Project</p>
-    </div>
+    <div class="container"><p class="mb-0">© 2025 AuctionHub — University Project</p></div>
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -82,7 +67,6 @@
       await loadEndingSoon();
       await loadAuctions();
 
-      // Hero search
       document.getElementById("hero-search-btn").addEventListener("click", () => {
         currentSearch = document.getElementById("hero-search").value.trim();
         currentPage = 1;
@@ -93,7 +77,6 @@
       });
     });
 
-    // ── Load categories as filter pills ───────────────────────
     async function loadCategories() {
       try {
         const cats = await PublicAPI.getCategories();
@@ -112,8 +95,6 @@
           });
           container.appendChild(btn);
         });
-
-        // "All" button click
         container.querySelector("[data-cat='']").addEventListener("click", (e) => {
           document.querySelectorAll(".active-cat").forEach(b => b.classList.remove("active-cat", "btn-dark"));
           e.target.classList.add("active-cat", "btn-dark");
@@ -124,7 +105,6 @@
       } catch (_) {}
     }
 
-    // ── Load ending soon auctions ──────────────────────────────
     async function loadEndingSoon() {
       const row = document.getElementById("ending-soon-row");
       try {
@@ -140,49 +120,36 @@
       }
     }
 
-    // ── Load main auctions grid ────────────────────────────────
     async function loadAuctions() {
       const row = document.getElementById("auctions-row");
       row.innerHTML = `<div class="col-12 loading-overlay"><div class="spinner-border text-secondary"></div></div>`;
-
       try {
-        const params = {
-          skip: (currentPage - 1) * PAGE_SIZE,
-          limit: PAGE_SIZE,
-        };
+        const params = { skip: (currentPage - 1) * PAGE_SIZE, limit: PAGE_SIZE };
         if (currentCategory) params.category_id = currentCategory;
-        if (currentSearch)   params.search = currentSearch;
-
+        if (currentSearch)   params.search       = currentSearch;
         const auctions = await PublicAPI.getAuctions(params);
-
         if (!auctions.length) {
-          row.innerHTML = `
-            <div class="col-12 empty-state">
-              <div class="empty-icon">🔍</div>
-              <h5>No auctions found</h5>
-              <p>Try a different search or category.</p>
-            </div>`;
+          row.innerHTML = `<div class="col-12 empty-state"><div class="empty-icon">[ ]</div><h5>No auctions found</h5><p>Try a different search or category.</p></div>`;
           document.getElementById("pagination").innerHTML = "";
           return;
         }
-
         row.innerHTML = auctions.map(renderCard).join("");
-        startCountdowns();
+        attachAllCountdowns();
         renderPagination(auctions.length);
       } catch (err) {
         row.innerHTML = `<div class="col-12 text-center text-danger p-4">Failed to load auctions: ${err.message}</div>`;
       }
     }
 
-    // ── Render single auction card HTML ────────────────────────
     function renderCard(a) {
-      const bid = a.current_bid != null ? formatCurrency(a.current_bid) : (a.starting_price ? formatCurrency(a.starting_price) : "No bids");
-      const bin = a.buy_it_now_price ? `<small class="text-muted">BIN: ${formatCurrency(a.buy_it_now_price)}</small>` : "";
+      const startVal = a.starting_bid != null ? a.starting_bid : (a.starting_price != null ? a.starting_price : 0);
+      const bid = a.current_bid != null ? formatCurrency(a.current_bid) : formatCurrency(startVal);
+      const bin = a.buy_it_now_price ? `<small class="text-muted">Buy Now: ${formatCurrency(a.buy_it_now_price)}</small>` : "";
       return `
         <div class="col-sm-6 col-lg-4">
           <div class="card auction-card h-100 cursor-pointer" onclick="window.location.href='pages/auction-detail.html?id=${a.id}'">
-            <div class="card-img-top d-flex align-items-center justify-content-center bg-light" style="height:160px;font-size:3rem;">
-              🏷️
+            <div class="card-img-placeholder d-flex align-items-center justify-content-center bg-light" style="height:160px;">
+              <span class="text-muted">[ Item Image ]</span>
             </div>
             <div class="card-body d-flex flex-column">
               <h6 class="card-title fw-bold mb-1">${a.title}</h6>
@@ -190,7 +157,7 @@
               <div class="current-bid mb-1">${bid}</div>
               ${bin}
               <div class="mt-auto pt-2 d-flex justify-content-between align-items-center">
-                <span class="countdown" data-end="${a.end_time}">⏳ Loading...</span>
+                <span class="countdown small" data-end="${a.end_time}">Loading...</span>
                 ${statusBadge(a.status)}
               </div>
             </div>
@@ -198,28 +165,21 @@
         </div>`;
     }
 
-    // ── Live countdown updater ─────────────────────────────────
-    function startCountdowns() {
-      attachAllCountdowns();
-    }
-
-    // ── Pagination ─────────────────────────────────────────────
     function renderPagination(count) {
       const pg = document.getElementById("pagination");
       pg.innerHTML = "";
       if (count < PAGE_SIZE && currentPage === 1) return;
-
       if (currentPage > 1) {
         const prev = document.createElement("button");
         prev.className = "btn btn-outline-dark btn-sm";
-        prev.textContent = "← Prev";
+        prev.textContent = "Prev";
         prev.onclick = () => { currentPage--; loadAuctions(); };
         pg.appendChild(prev);
       }
       if (count === PAGE_SIZE) {
         const next = document.createElement("button");
         next.className = "btn btn-dark btn-sm";
-        next.textContent = "Next →";
+        next.textContent = "Next";
         next.onclick = () => { currentPage++; loadAuctions(); };
         pg.appendChild(next);
       }

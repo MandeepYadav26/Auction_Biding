@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
@@ -12,7 +12,7 @@
   <div id="toast-container" class="toast-container position-fixed top-0 end-0 p-3" style="z-index:9999"></div>
 
   <div class="container mt-4">
-    <h4 class="fw-bold mb-3">🏆 Won Auctions</h4>
+    <h4 class="fw-bold mb-3">Won Auctions</h4>
     <div id="won-container">
       <div class="loading-overlay"><div class="spinner-border text-secondary"></div></div>
     </div>
@@ -35,48 +35,33 @@
       try {
         const items = await BidderAPI.getWonAuctions();
         if (!items.length) {
-          container.innerHTML = `
-            <div class="empty-state">
-              <div class="empty-icon">🏆</div>
-              <h5>No won auctions yet</h5>
-              <p>Keep bidding! Your wins will appear here.</p>
-            </div>`;
+          container.innerHTML = `<div class="empty-state"><h5>No won auctions yet</h5><p>Keep bidding! Your wins will appear here.</p></div>`;
           return;
         }
-
         container.innerHTML = `
           <div class="table-responsive">
             <table class="table table-hover align-middle">
               <thead class="table-dark">
-                <tr>
-                  <th>Auction</th>
-                  <th>Winning Bid</th>
-                  <th>Won At</th>
-                  <th>Payment</th>
-                  <th>Invoice</th>
-                  <th></th>
-                </tr>
+                <tr><th>Auction</th><th>Winning Bid</th><th>Won At</th><th>Payment</th><th>Invoice</th><th></th></tr>
               </thead>
               <tbody>
-                ${items.map(w => `
+                ${items.map(w => {
+                  const isPaid = (w.payment_status === "paid") || w.is_paid;
+                  const winAmt = w.winning_amount != null ? w.winning_amount : (w.winning_bid || 0);
+                  return `
                   <tr>
                     <td><strong>${w.auction_title || "Auction #" + w.auction_id}</strong></td>
-                    <td class="text-success fw-bold">${formatCurrency(w.winning_bid)}</td>
+                    <td class="text-success fw-bold">${formatCurrency(winAmt)}</td>
                     <td>${formatDate(w.created_at)}</td>
-                    <td>
-                      ${w.is_paid
-                        ? '<span class="badge bg-success">✅ Paid</span>'
-                        : `<a href="payment.html?won_id=${w.id}" class="btn btn-sm btn-warning">💳 Pay Now</a>`}
-                    </td>
-                    <td>
-                      ${w.invoice_id
-                        ? `<a href="payment.html?invoice_id=${w.invoice_id}" class="btn btn-sm btn-outline-dark">📄 View Invoice</a>`
-                        : '—'}
-                    </td>
-                    <td>
-                      <a href="auction-detail.html?id=${w.auction_id}" class="btn btn-sm btn-outline-secondary">View</a>
-                    </td>
-                  </tr>`).join("")}
+                    <td>${isPaid
+                      ? '<span class="badge bg-success">Paid</span>'
+                      : `<a href="payment.html?won_id=${w.id}" class="btn btn-sm btn-warning">Pay Now</a>`}</td>
+                    <td>${isPaid
+                      ? `<a href="payment.html?invoice_id=${w.id}" class="btn btn-sm btn-outline-dark">View Invoice</a>`
+                      : '—'}</td>
+                    <td><a href="auction-detail.html?id=${w.auction_id}" class="btn btn-sm btn-outline-secondary">View</a></td>
+                  </tr>`;
+                }).join("")}
               </tbody>
             </table>
           </div>`;

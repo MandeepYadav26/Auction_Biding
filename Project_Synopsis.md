@@ -47,8 +47,6 @@ Standard web applications are not designed to handle the unique requirements of 
 * Proxy bids must remain secret and the system must automatically advance them when competing bids arrive.
 * Auctions must close automatically at the scheduled end time, with correct winner identification.
 
-This project addresses these challenges using database transactions, bid validation logic, and a background task for auction closure - all at a level appropriate for a university semester project.
-
 ---
 
 ## 4. PROJECT OBJECTIVES
@@ -88,27 +86,7 @@ This project addresses these challenges using database transactions, bid validat
 
 ---
 
-## 6. TECHNOLOGY STACK
-
-* **Backend Framework:** FastAPI (Python 3.10+)
-  * Rationale: Lightweight, fast, automatic API documentation via Swagger UI.
-* **Database:** MySQL with InnoDB engine
-  * Rationale: Widely taught in university curriculum, supports transactions and foreign keys.
-* **ORM:** SQLAlchemy 2.0
-  * Rationale: Python-native ORM supporting database queries, relationships, and transactions.
-* **Frontend:** HTML5 + CSS3 + JavaScript (Bootstrap optional)
-  * Rationale: Simple, no build tools required, easy to understand and deploy.
-* **Authentication:** JWT (JSON Web Tokens) with bcrypt password hashing
-  * Rationale: Stateless authentication suitable for REST APIs.
-
-### Hardware Requirements
-* Processor: Dual-core 2.0 GHz or higher
-* RAM: Minimum 4 GB
-* Disk Space: 500 MB
-
----
-
-## 7. SYSTEM ARCHITECTURE
+## 6. SYSTEM ARCHITECTURE
 
 ```
 User (Web Browser)
@@ -129,29 +107,7 @@ The architecture is a simple client-server model:
 
 ---
 
-## 8. MODULE DESCRIPTIONS
-
-1. **Authentication Module:** Handles user registration, bcrypt password hashing, JWT token generation, and role-based access control.
-
-2. **Seller Module:** Allows sellers to create auction listings with all pricing fields, view their own auctions, and track auction results.
-
-3. **Admin Module:** Provides admin dashboard with platform statistics, category management, and auction listing approval/rejection workflow.
-
-4. **Bidding Module:** Processes manual bids with validation (amount >= current_bid + increment), updates auction's current bid, and maintains the append-only bids log.
-
-5. **Proxy Bidding Module:** Stores secret maximum bids per bidder per auction. Automatically counter-bids when a competing manual bid arrives, up to the proxy holder's maximum.
-
-6. **Buy-It-Now Module:** Enables instant purchase at the BIN price, immediately closing the auction and creating a winner record.
-
-7. **Auction Ending Module:** Background checker that identifies expired auctions, determines the winner, checks reserve prices, and updates auction status.
-
-8. **Payment & Invoice Module:** Simulated payment flow (Pending → Paid) and invoice generation for winning bidders.
-
-9. **Watchlist & My Bids Module:** Allows bidders to track auctions of interest and view all their active bids with status badges (Winning / Outbid / Won / Lost).
-
----
-
-## 9. DATABASE DESIGN
+## 7. DATABASE DESIGN
 
 The database uses MySQL with the following entities:
 
@@ -181,65 +137,7 @@ erDiagram
 
 ---
 
-## 10. CORE ALGORITHM - BID PLACEMENT
-
-```python
-def place_bid(auction_id, bidder_id, bid_amount):
-    # Step 1: Fetch the auction
-    auction = get_auction(auction_id)
-    
-    # Step 2: Validate auction is active and not expired
-    if auction.status != 'active' or now() > auction.end_time:
-        return Error("Auction is not active or has ended")
-    
-    # Step 3: Seller cannot bid on own auction
-    if auction.seller_id == bidder_id:
-        return Error("Cannot bid on your own auction")
-    
-    # Step 4: Validate minimum bid amount
-    min_required = auction.current_bid + auction.minimum_increment
-    if bid_amount < min_required:
-        return Error(f"Minimum bid is {min_required}")
-    
-    # Step 5: Record the bid
-    create_bid(auction_id, bidder_id, bid_amount, type='manual')
-    
-    # Step 6: Update auction current bid
-    auction.current_bid = bid_amount
-    
-    # Step 7: Check proxy bids from other bidders
-    best_proxy = get_highest_active_proxy(auction_id, exclude=bidder_id)
-    if best_proxy and best_proxy.max_amount > bid_amount:
-        auto_amount = min(best_proxy.max_amount, bid_amount + auction.minimum_increment)
-        create_bid(auction_id, best_proxy.bidder_id, auto_amount, type='proxy_auto')
-        auction.current_bid = auto_amount
-        return {"status": "outbid_by_proxy", "current_bid": auto_amount}
-    
-    return {"status": "winning", "current_bid": bid_amount}
-```
-
----
-
-## 11. TESTING PLAN
-
-* **Test 1 - Authentication:** Correct login succeeds; wrong password returns error; seller cannot access admin endpoints.
-* **Test 2 - Auction Creation:** Valid auction created successfully; invalid price rejected.
-* **Test 3 - Bidding:** Valid bid accepted; bid below minimum rejected; seller bidding on own auction rejected; bid on ended auction rejected.
-* **Test 4 - Proxy Bidding:** Proxy max > competing bid → system auto-bids; proxy max exceeded → competing bidder wins.
-* **Test 5 - Auction Ending:** Auction ends at scheduled time; highest bidder identified; reserve not met → no sale.
-* **Test 6 - Payment & Invoice:** Winner can simulate payment; invoice generated with correct details.
-
----
-
-## 12. FEASIBILITY STUDY
-
-1. **Technical Feasibility:** Fully feasible using open-source, free tools (Python, FastAPI, MySQL, HTML/CSS/JS). All technologies are well-documented and widely used in university curricula.
-2. **Operational Feasibility:** The system automates bid validation and winner determination, reducing manual effort.
-3. **Economic Feasibility:** Zero cost - all technologies are free and open-source.
-
----
-
-## 13. EXPECTED OUTCOME
+## 8. EXPECTED OUTCOME
 
 The final system shall allow the complete auction lifecycle:
 
@@ -257,7 +155,7 @@ The project demonstrates practical understanding of: Python, FastAPI, MySQL, RES
 
 ---
 
-## 14. FUTURE SCOPE
+## 9. FUTURE SCOPE
 
 * **Real-time Updates:** WebSocket integration for instant bid notifications.
 * **Payment Gateway:** Stripe / Razorpay integration for real transactions.
@@ -266,11 +164,3 @@ The project demonstrates practical understanding of: Python, FastAPI, MySQL, RES
 * **Auto-Extension:** Anti-sniping clock extension when bids arrive near auction end.
 
 ---
-
-## 15. REFERENCES
-
-1. FastAPI Documentation: https://fastapi.tiangolo.com/
-2. MySQL Documentation: https://dev.mysql.com/doc/
-3. SQLAlchemy Documentation: https://docs.sqlalchemy.org/
-4. MDN Web Docs - JavaScript Fetch API: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API
-5. InterviewCafe Project Specification Guide (Project #29: Auction Platform).

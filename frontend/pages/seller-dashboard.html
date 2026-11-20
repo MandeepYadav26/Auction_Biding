@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
@@ -13,19 +13,17 @@
 
   <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-      <h4 class="fw-bold mb-0">🏪 Seller Dashboard</h4>
+      <h4 class="fw-bold mb-0">Seller Dashboard</h4>
       <a href="create-auction.html" class="btn btn-dark">+ Create Auction</a>
     </div>
 
-    <!-- Stats -->
-    <div class="row g-3 mb-4" id="stats-row">
+    <div class="row g-3 mb-4">
       <div class="col-md-3"><div class="card stat-card text-center p-3"><div class="stat-number text-primary" id="stat-total">—</div><div class="text-muted small">Total Auctions</div></div></div>
       <div class="col-md-3"><div class="card stat-card text-center p-3"><div class="stat-number text-success" id="stat-active">—</div><div class="text-muted small">Active</div></div></div>
       <div class="col-md-3"><div class="card stat-card text-center p-3"><div class="stat-number text-warning" id="stat-pending">—</div><div class="text-muted small">Pending Approval</div></div></div>
       <div class="col-md-3"><div class="card stat-card text-center p-3"><div class="stat-number text-secondary" id="stat-ended">—</div><div class="text-muted small">Ended / Sold</div></div></div>
     </div>
 
-    <!-- My Auctions Table -->
     <h5 class="section-title">My Auctions</h5>
     <div id="auctions-container">
       <div class="loading-overlay"><div class="spinner-border text-secondary"></div></div>
@@ -48,51 +46,39 @@
       const container = document.getElementById("auctions-container");
       try {
         const auctions = await SellerAPI.getMyAuctions();
-
-        // Stats
         document.getElementById("stat-total").textContent   = auctions.length;
-        document.getElementById("stat-active").textContent  = auctions.filter(a => a.status === "approved" || a.status === "active").length;
+        document.getElementById("stat-active").textContent  = auctions.filter(a => ["approved","active"].includes(a.status)).length;
         document.getElementById("stat-pending").textContent = auctions.filter(a => a.status === "pending").length;
         document.getElementById("stat-ended").textContent   = auctions.filter(a => ["ended","sold","cancelled"].includes(a.status)).length;
 
         if (!auctions.length) {
-          container.innerHTML = `
-            <div class="empty-state">
-              <div class="empty-icon">🏷️</div>
-              <h5>No auctions yet</h5>
-              <p><a href="create-auction.html">Create your first auction</a> to get started.</p>
-            </div>`;
+          container.innerHTML = `<div class="empty-state"><h5>No auctions yet</h5><p><a href="create-auction.html">Create your first auction</a> to get started.</p></div>`;
           return;
         }
-
         container.innerHTML = `
           <div class="table-responsive">
             <table class="table table-hover align-middle">
               <thead class="table-dark">
-                <tr>
-                  <th>Title</th>
-                  <th>Starting Price</th>
-                  <th>Current Bid</th>
-                  <th>Status</th>
-                  <th>End Time</th>
-                  <th>Actions</th>
-                </tr>
+                <tr><th>Title</th><th>Starting Price</th><th>Current Bid</th><th>Status</th><th>End Time</th><th>Actions</th></tr>
               </thead>
               <tbody>
-                ${auctions.map(a => `
+                ${auctions.map(a => {
+                  const startVal = a.starting_bid != null ? a.starting_bid : (a.starting_price != null ? a.starting_price : 0);
+                  return `
                   <tr>
                     <td><strong>${a.title}</strong></td>
-                    <td>${formatCurrency(a.starting_price)}</td>
+                    <td>${formatCurrency(startVal)}</td>
                     <td>${a.current_bid != null ? formatCurrency(a.current_bid) : '<span class="text-muted">No bids</span>'}</td>
                     <td>${statusBadge(a.status)}</td>
                     <td><small>${formatDate(a.end_time)}</small></td>
                     <td>
                       <div class="d-flex gap-1">
-                        <a href="seller-auction-detail.html?id=${a.id}" class="btn btn-sm btn-outline-dark">📋 Bids</a>
-                        <a href="auction-detail.html?id=${a.id}" class="btn btn-sm btn-outline-secondary">👁️ View</a>
+                        <a href="seller-auction-detail.html?id=${a.id}" class="btn btn-sm btn-outline-dark">Bids</a>
+                        <a href="auction-detail.html?id=${a.id}" class="btn btn-sm btn-outline-secondary">View</a>
                       </div>
                     </td>
-                  </tr>`).join("")}
+                  </tr>`;
+                }).join("")}
               </tbody>
             </table>
           </div>`;

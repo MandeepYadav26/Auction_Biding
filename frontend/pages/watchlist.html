@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
@@ -12,7 +12,7 @@
   <div id="toast-container" class="toast-container position-fixed top-0 end-0 p-3" style="z-index:9999"></div>
 
   <div class="container mt-4">
-    <h4 class="fw-bold mb-3">❤️ My Watchlist</h4>
+    <h4 class="fw-bold mb-3">My Watchlist</h4>
     <div id="watchlist-container">
       <div class="loading-overlay"><div class="spinner-border text-secondary"></div></div>
     </div>
@@ -36,26 +36,26 @@
       try {
         const items = await BidderAPI.getWatchlist();
         if (!items.length) {
-          container.innerHTML = `
-            <div class="empty-state">
-              <div class="empty-icon">❤️</div>
-              <h5>Your watchlist is empty</h5>
-              <p>Add auctions to your watchlist from the <a href="auction-list.html">auction listing page</a>.</p>
-            </div>`;
+          container.innerHTML = `<div class="empty-state"><h5>Your watchlist is empty</h5><p>Add auctions from the <a href="auction-list.html">auction listing page</a>.</p></div>`;
           return;
         }
-
         container.innerHTML = `
           <div class="row g-3">
-            ${items.map(item => `
+            ${items.map(item => {
+              const a = item.auction || item;
+              const title = a.title || item.auction_title || "Auction";
+              const curBid = a.current_bid != null ? formatCurrency(a.current_bid) : "No bids";
+              const endTime = a.end_time || item.end_time;
+              const stat = a.status || item.status || "active";
+              return `
               <div class="col-sm-6 col-lg-4" id="watch-${item.auction_id}">
                 <div class="card auction-card h-100">
                   <div class="card-body">
-                    <h6 class="fw-bold">${item.auction_title || "Auction"}</h6>
-                    <div class="current-bid mb-1">${item.current_bid != null ? formatCurrency(item.current_bid) : "No bids"}</div>
+                    <h6 class="fw-bold">${title}</h6>
+                    <div class="current-bid mb-1">${curBid}</div>
                     <div class="mb-2">
-                      <span class="countdown small" data-end="${item.end_time}">⏳</span>
-                      ${statusBadge(item.status || "active")}
+                      <span class="countdown small" data-end="${endTime}">...</span>
+                      ${statusBadge(stat)}
                     </div>
                     <div class="d-flex gap-2 mt-2">
                       <a href="auction-detail.html?id=${item.auction_id}" class="btn btn-sm btn-dark flex-fill">View</a>
@@ -63,10 +63,9 @@
                     </div>
                   </div>
                 </div>
-              </div>`).join("")}
+              </div>`;
+            }).join("")}
           </div>`;
-
-        // Start countdowns
         attachAllCountdowns();
       } catch (err) {
         container.innerHTML = `<div class="alert alert-danger">${err.message}</div>`;
@@ -78,9 +77,7 @@
         await BidderAPI.removeFromWatchlist(auctionId);
         document.getElementById(`watch-${auctionId}`).remove();
         showToast("Removed from watchlist.", "info");
-      } catch (err) {
-        showToast("❌ " + err.message, "danger");
-      }
+      } catch (err) { showToast(err.message, "danger"); }
     }
   </script>
 </body>

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
@@ -8,9 +8,7 @@
   <link rel="stylesheet" href="css/style.css"/>
 </head>
 <body class="bg-light">
-
   <div id="main-nav"></div>
-
   <div id="toast-container" class="toast-container position-fixed top-0 end-0 p-3" style="z-index:9999"></div>
 
   <div class="container mt-5">
@@ -18,8 +16,7 @@
       <div class="col-md-5">
         <div class="card shadow">
           <div class="card-body p-4">
-            <h3 class="card-title text-center mb-4">🔨 Create Account</h3>
-
+            <h3 class="card-title text-center mb-4">Create Account</h3>
             <form id="register-form">
               <div class="mb-3">
                 <label class="form-label">Full Name</label>
@@ -43,15 +40,10 @@
               </div>
               <div id="error-msg" class="alert alert-danger d-none"></div>
               <div id="success-msg" class="alert alert-success d-none"></div>
-              <button type="submit" class="btn btn-dark w-100" id="reg-btn">
-                Create Account
-              </button>
+              <button type="submit" class="btn btn-dark w-100" id="reg-btn">Create Account</button>
             </form>
-
             <hr/>
-            <p class="text-center mb-0">
-              Already have an account? <a href="login.html">Login here</a>
-            </p>
+            <p class="text-center mb-0">Already have an account? <a href="login.html">Login here</a></p>
           </div>
         </div>
       </div>
@@ -62,13 +54,10 @@
   <script src="js/api.js"></script>
   <script src="js/auth.js"></script>
   <script>
-    if (isLoggedIn()) {
-      redirectByRole(getUserRole());
-    }
+    if (isLoggedIn()) redirectByRole(getUserRole());
 
     document.addEventListener("DOMContentLoaded", () => {
       renderNav();
-
       document.getElementById("register-form").addEventListener("submit", async (e) => {
         e.preventDefault();
         const name     = document.getElementById("name").value.trim();
@@ -88,8 +77,6 @@
           await AuthAPI.register(name, email, password, role);
           sucEl.textContent = "Account created! Logging you in...";
           sucEl.classList.remove("d-none");
-
-          // Auto-login after registration
           const user = await login(email, password);
           setTimeout(() => redirectByRole(user.role), 1000);
         } catch (err) {

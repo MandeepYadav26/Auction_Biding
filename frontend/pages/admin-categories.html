@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
@@ -12,9 +12,8 @@
   <div id="toast-container" class="toast-container position-fixed top-0 end-0 p-3" style="z-index:9999"></div>
 
   <div class="container mt-4" style="max-width:800px">
-    <h4 class="fw-bold mb-4">🏷️ Category Management</h4>
+    <h4 class="fw-bold mb-4">Category Management</h4>
 
-    <!-- Add Category Card -->
     <div class="card mb-4 shadow-sm">
       <div class="card-body">
         <h6 class="fw-bold mb-3">Add New Category</h6>
@@ -26,14 +25,13 @@
             <input type="text" class="form-control" id="cat-desc" placeholder="Description (optional)"/>
           </div>
           <div class="col-md-2">
-            <button type="submit" class="btn btn-dark w-100">+ Add</button>
+            <button type="submit" class="btn btn-dark w-100">Add</button>
           </div>
         </form>
         <div id="add-error" class="alert alert-danger mt-2 d-none"></div>
       </div>
     </div>
 
-    <!-- Categories list -->
     <h5 class="section-title">All Categories</h5>
     <div id="categories-container">
       <div class="loading-overlay"><div class="spinner-border text-secondary"></div></div>
@@ -50,7 +48,6 @@
       if (!requireAuth("admin")) return;
       renderNav();
       await loadCategories();
-
       document.getElementById("add-form").addEventListener("submit", addCategory);
     });
 
@@ -58,33 +55,18 @@
       const container = document.getElementById("categories-container");
       try {
         const cats = await AdminAPI.getCategories();
-        if (!cats.length) {
-          container.innerHTML = `<p class="text-muted text-center p-4">No categories yet. Add one above!</p>`;
-          return;
-        }
-
+        if (!cats.length) { container.innerHTML = `<p class="text-muted text-center p-4">No categories yet. Add one above.</p>`; return; }
         container.innerHTML = `
           <div class="table-responsive">
             <table class="table table-hover align-middle">
-              <thead class="table-dark">
-                <tr>
-                  <th>ID</th>
-                  <th>Name</th>
-                  <th>Description</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
+              <thead class="table-dark"><tr><th>ID</th><th>Name</th><th>Description</th><th>Action</th></tr></thead>
               <tbody>
                 ${cats.map(c => `
                   <tr id="cat-row-${c.id}">
                     <td>${c.id}</td>
                     <td><strong>${c.name}</strong></td>
                     <td>${c.description || '<span class="text-muted">—</span>'}</td>
-                    <td>
-                      <button class="btn btn-sm btn-outline-danger" onclick="deleteCategory(${c.id}, '${c.name}')">
-                        🗑️ Delete
-                      </button>
-                    </td>
+                    <td><button class="btn btn-sm btn-outline-danger" onclick="deleteCategory(${c.id}, '${c.name}')">Delete</button></td>
                   </tr>`).join("")}
               </tbody>
             </table>
@@ -96,16 +78,15 @@
 
     async function addCategory(e) {
       e.preventDefault();
-      const name = document.getElementById("cat-name").value.trim();
-      const desc = document.getElementById("cat-desc").value.trim();
+      const name  = document.getElementById("cat-name").value.trim();
+      const desc  = document.getElementById("cat-desc").value.trim();
       const errEl = document.getElementById("add-error");
       errEl.classList.add("d-none");
-
       try {
         await AdminAPI.createCategory(name, desc);
         document.getElementById("cat-name").value = "";
         document.getElementById("cat-desc").value = "";
-        showToast(`✅ Category "${name}" added!`, "success");
+        showToast(`Category "${name}" added!`, "success");
         await loadCategories();
       } catch (err) {
         errEl.textContent = err.message;
@@ -119,9 +100,7 @@
         await AdminAPI.deleteCategory(id);
         document.getElementById(`cat-row-${id}`).remove();
         showToast(`Category "${name}" deleted.`, "warning");
-      } catch (err) {
-        showToast("❌ " + err.message, "danger");
-      }
+      } catch (err) { showToast(err.message, "danger"); }
     }
   </script>
 </body>

@@ -1,176 +1,176 @@
-/* ============================================================
-   style.css — Global styles for AuctionHub
-   ============================================================ */
+﻿/* ============================================================
+ style.css — Global styles for AuctionHub
+ ============================================================ */
 
 /* ── Root variables ─────────────────────────────────────────── */
 :root {
-  --primary: #212529;
-  --accent:  #f4c430;
-  --card-radius: 12px;
-  --transition: 0.2s ease;
+ --primary: #212529;
+ --accent: #f4c430;
+ --card-radius: 12px;
+ --transition: 0.2s ease;
 }
 
 /* ── Base ────────────────────────────────────────────────────── */
 body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #f8f9fa;
-  color: #212529;
+ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+ background-color: #f8f9fa;
+ color: #212529;
 }
 
 /* ── Navbar tweaks ───────────────────────────────────────────── */
 .navbar-brand {
-  font-size: 1.4rem;
-  letter-spacing: 0.5px;
+ font-size: 1.4rem;
+ letter-spacing: 0.5px;
 }
 
 /* ── Auction card ────────────────────────────────────────────── */
 .auction-card {
-  border: none;
-  border-radius: var(--card-radius);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  transition: transform var(--transition), box-shadow var(--transition);
-  overflow: hidden;
+ border: none;
+ border-radius: var(--card-radius);
+ box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+ transition: transform var(--transition), box-shadow var(--transition);
+ overflow: hidden;
 }
 
 .auction-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.14);
+ transform: translateY(-4px);
+ box-shadow: 0 8px 24px rgba(0,0,0,0.14);
 }
 
 .auction-card .card-img-top {
-  height: 180px;
-  object-fit: cover;
-  background: #dee2e6;
+ height: 180px;
+ object-fit: cover;
+ background: #dee2e6;
 }
 
 .auction-card .card-body {
-  padding: 1rem;
+ padding: 1rem;
 }
 
 .auction-card .current-bid {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #198754;
+ font-size: 1.1rem;
+ font-weight: 700;
+ color: #198754;
 }
 
 .auction-card .countdown {
-  font-size: 0.82rem;
-  color: #dc3545;
-  font-weight: 600;
+ font-size: 0.82rem;
+ color: #dc3545;
+ font-weight: 600;
 }
 
 /* ── Hero banner (index.html) ────────────────────────────────── */
 .hero-banner {
-  background: linear-gradient(135deg, #212529 0%, #343a40 100%);
-  color: #fff;
-  padding: 60px 0;
-  margin-bottom: 40px;
+ background: linear-gradient(135deg, #212529 0%, #343a40 100%);
+ color: #fff;
+ padding: 60px 0;
+ margin-bottom: 40px;
 }
 
 .hero-banner h1 {
-  font-size: 2.6rem;
-  font-weight: 800;
-  letter-spacing: -0.5px;
+ font-size: 2.6rem;
+ font-weight: 800;
+ letter-spacing: -0.5px;
 }
 
 .hero-banner .search-bar {
-  max-width: 540px;
-  margin: 0 auto;
+ max-width: 540px;
+ margin: 0 auto;
 }
 
 /* ── Section headers ─────────────────────────────────────────── */
 .section-title {
-  font-size: 1.3rem;
-  font-weight: 700;
-  border-left: 4px solid var(--accent);
-  padding-left: 10px;
-  margin-bottom: 20px;
+ font-size: 1.3rem;
+ font-weight: 700;
+ border-left: 4px solid var(--accent);
+ padding-left: 10px;
+ margin-bottom: 20px;
 }
 
 /* ── Bid history table ───────────────────────────────────────── */
 .bid-history-table td, .bid-history-table th {
-  vertical-align: middle;
+ vertical-align: middle;
 }
 
 /* ── Countdown badge ─────────────────────────────────────────── */
 .countdown-badge {
-  background: #fff3cd;
-  color: #856404;
-  border: 1px solid #ffc107;
-  border-radius: 20px;
-  padding: 4px 12px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  display: inline-block;
+ background: #fff3cd;
+ color: #856404;
+ border: 1px solid #ffc107;
+ border-radius: 20px;
+ padding: 4px 12px;
+ font-size: 0.85rem;
+ font-weight: 600;
+ display: inline-block;
 }
 
 /* ── Loading spinner overlay ─────────────────────────────────── */
 .loading-overlay {
-  min-height: 200px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+ min-height: 200px;
+ display: flex;
+ align-items: center;
+ justify-content: center;
 }
 
 /* ── Empty state ─────────────────────────────────────────────── */
 .empty-state {
-  text-align: center;
-  padding: 60px 20px;
-  color: #6c757d;
+ text-align: center;
+ padding: 60px 20px;
+ color: #6c757d;
 }
 
 .empty-state .empty-icon {
-  font-size: 3rem;
-  margin-bottom: 10px;
+ font-size: 3rem;
+ margin-bottom: 10px;
 }
 
 /* ── Auction detail page ─────────────────────────────────────── */
 .detail-price-box {
-  background: #f8f9fa;
-  border-radius: 10px;
-  padding: 20px;
-  border: 1px solid #dee2e6;
+ background: #f8f9fa;
+ border-radius: 10px;
+ padding: 20px;
+ border: 1px solid #dee2e6;
 }
 
 .detail-price-box .price-label {
-  font-size: 0.85rem;
-  color: #6c757d;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+ font-size: 0.85rem;
+ color: #6c757d;
+ text-transform: uppercase;
+ letter-spacing: 0.5px;
 }
 
 .detail-price-box .price-value {
-  font-size: 2rem;
-  font-weight: 800;
-  color: #198754;
+ font-size: 2rem;
+ font-weight: 800;
+ color: #198754;
 }
 
 /* ── Stats cards (admin/seller dashboard) ────────────────────── */
 .stat-card {
-  border: none;
-  border-radius: var(--card-radius);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+ border: none;
+ border-radius: var(--card-radius);
+ box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
 .stat-card .stat-number {
-  font-size: 2.2rem;
-  font-weight: 800;
+ font-size: 2.2rem;
+ font-weight: 800;
 }
 
 /* ── Responsive table wrapper ────────────────────────────────── */
 .table-responsive {
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+ border-radius: 8px;
+ overflow: hidden;
+ box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }
 
 /* ── Footer ──────────────────────────────────────────────────── */
 footer {
-  background: #212529;
-  color: #adb5bd;
-  padding: 20px 0;
-  margin-top: 60px;
-  font-size: 0.88rem;
+ background: #212529;
+ color: #adb5bd;
+ padding: 20px 0;
+ margin-top: 60px;
+ font-size: 0.88rem;
 }
 
 /* ── Utility ─────────────────────────────────────────────────── */
@@ -180,91 +180,91 @@ footer {
 
 /* ── Countdown blocks (Phase 14) ─────────────────────────────── */
 .cd-blocks {
-  padding: 12px 0;
+ padding: 12px 0;
 }
 
 .cd-block {
-  background: #f8f9fa;
-  border: 1px solid #dee2e6;
-  border-radius: 10px;
-  min-width: 68px;
-  padding: 8px 12px;
-  transition: background var(--transition), border-color var(--transition);
+ background: #f8f9fa;
+ border: 1px solid #dee2e6;
+ border-radius: 10px;
+ min-width: 68px;
+ padding: 8px 12px;
+ transition: background var(--transition), border-color var(--transition);
 }
 
 .cd-block .cd-value {
-  line-height: 1.1;
-  font-variant-numeric: tabular-nums;
+ line-height: 1.1;
+ font-variant-numeric: tabular-nums;
 }
 
 .cd-sep {
-  display: flex;
-  align-items: center;
-  color: #6c757d;
+ display: flex;
+ align-items: center;
+ color: #6c757d;
 }
 
 /* Urgency color states for the container */
 #detail-countdown[data-urgency="warning"] .cd-block {
-  background: #fff3cd;
-  border-color: #ffc107;
+ background: #fff3cd;
+ border-color: #ffc107;
 }
 
 #detail-countdown[data-urgency="warning"] .cd-value {
-  color: #856404;
+ color: #856404;
 }
 
 #detail-countdown[data-urgency="critical"] .cd-block {
-  background: #f8d7da;
-  border-color: #dc3545;
-  animation: pulse-red 1s ease-in-out infinite;
+ background: #f8d7da;
+ border-color: #dc3545;
+ animation: pulse-red 1s ease-in-out infinite;
 }
 
 #detail-countdown[data-urgency="critical"] .cd-value {
-  color: #842029;
+ color: #842029;
 }
 
 @keyframes pulse-red {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.3); }
-  50%       { box-shadow: 0 0 0 6px rgba(220, 53, 69, 0); }
+ 0%, 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.3); }
+ 50% { box-shadow: 0 0 0 6px rgba(220, 53, 69, 0); }
 }
 
 /* Ending soon banner */
 .ending-soon-banner {
-  background: linear-gradient(90deg, #dc3545, #c0392b);
-  color: #fff;
-  border-radius: 8px;
-  padding: 10px 16px;
-  font-weight: 600;
-  animation: banner-pulse 1.5s ease-in-out infinite;
+ background: linear-gradient(90deg, #dc3545, #c0392b);
+ color: #fff;
+ border-radius: 8px;
+ padding: 10px 16px;
+ font-weight: 600;
+ animation: banner-pulse 1.5s ease-in-out infinite;
 }
 
 @keyframes banner-pulse {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0.82; }
+ 0%, 100% { opacity: 1; }
+ 50% { opacity: 0.82; }
 }
 
 /* Auto-refresh indicator */
 .refresh-indicator {
-  font-size: 0.75rem;
-  color: #6c757d;
-  display: flex;
-  align-items: center;
-  gap: 4px;
+ font-size: 0.75rem;
+ color: #6c757d;
+ display: flex;
+ align-items: center;
+ gap: 4px;
 }
 
 .refresh-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #198754;
-  animation: dot-blink 2s ease-in-out infinite;
+ width: 7px;
+ height: 7px;
+ border-radius: 50%;
+ background: #198754;
+ animation: dot-blink 2s ease-in-out infinite;
 }
 
 @keyframes dot-blink {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0.2; }
+ 0%, 100% { opacity: 1; }
+ 50% { opacity: 0.2; }
 }
 
 /* Countdown card in list pages */
 .countdown[data-end].text-warning { font-weight: 600; }
-.countdown[data-end].text-danger  { font-weight: 700; }
+.countdown[data-end].text-danger { font-weight: 700; }

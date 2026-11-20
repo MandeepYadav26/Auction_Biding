@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
@@ -12,18 +12,16 @@
   <div id="toast-container" class="toast-container position-fixed top-0 end-0 p-3" style="z-index:9999"></div>
 
   <div class="container mt-4">
-    <h4 class="fw-bold mb-4">⚙️ Admin Dashboard</h4>
+    <h4 class="fw-bold mb-4">Admin Dashboard</h4>
 
-    <!-- Stats Row -->
-    <div class="row g-3 mb-5" id="stats-row">
+    <div class="row g-3 mb-5">
       <div class="col-6 col-md-3"><div class="card stat-card text-center p-3"><div class="stat-number text-primary" id="st-users">—</div><div class="text-muted small">Total Users</div></div></div>
       <div class="col-6 col-md-3"><div class="card stat-card text-center p-3"><div class="stat-number text-success" id="st-auctions">—</div><div class="text-muted small">Total Auctions</div></div></div>
       <div class="col-6 col-md-3"><div class="card stat-card text-center p-3"><div class="stat-number text-warning" id="st-pending">—</div><div class="text-muted small">Pending Approval</div></div></div>
-      <div class="col-6 col-md-3"><div class="card stat-card text-center p-3"><div class="stat-number text-info" id="st-bids">—</div><div class="text-muted small">Total Bids</div></div></div>
+      <div class="col-6 col-md-3"><div class="card stat-card text-center p-3"><div class="stat-number text-info" id="st-active">—</div><div class="text-muted small">Active Auctions</div></div></div>
     </div>
 
-    <!-- Pending Auctions -->
-    <h5 class="section-title">📋 Pending Auctions (Awaiting Approval)</h5>
+    <h5 class="section-title">Pending Auctions (Awaiting Approval)</h5>
     <div id="pending-container">
       <div class="loading-overlay"><div class="spinner-border text-secondary"></div></div>
     </div>
@@ -45,10 +43,10 @@
     async function loadStats() {
       try {
         const s = await AdminAPI.getStats();
-        document.getElementById("st-users").textContent    = s.total_users    ?? "—";
+        document.getElementById("st-users").textContent    = s.total_users     ?? "—";
         document.getElementById("st-auctions").textContent = s.total_auctions  ?? "—";
         document.getElementById("st-pending").textContent  = s.pending_auctions ?? "—";
-        document.getElementById("st-bids").textContent     = s.total_bids      ?? "—";
+        document.getElementById("st-active").textContent   = s.active_auctions  ?? "—";
       } catch (_) {}
     }
 
@@ -57,27 +55,14 @@
       try {
         const auctions = await AdminAPI.getPendingAuctions();
         if (!auctions.length) {
-          container.innerHTML = `
-            <div class="empty-state">
-              <div class="empty-icon">✅</div>
-              <h5>All caught up!</h5>
-              <p>No auctions pending approval right now.</p>
-            </div>`;
+          container.innerHTML = `<div class="empty-state"><h5>All caught up!</h5><p>No auctions pending approval.</p></div>`;
           return;
         }
-
         container.innerHTML = `
           <div class="table-responsive">
             <table class="table table-hover align-middle">
               <thead class="table-dark">
-                <tr>
-                  <th>Title</th>
-                  <th>Seller</th>
-                  <th>Starting Price</th>
-                  <th>Start Time</th>
-                  <th>End Time</th>
-                  <th>Actions</th>
-                </tr>
+                <tr><th>Title</th><th>Seller</th><th>Starting Price</th><th>Start Time</th><th>End Time</th><th>Actions</th></tr>
               </thead>
               <tbody id="pending-tbody">
                 ${auctions.map(a => renderPendingRow(a)).join("")}
@@ -92,19 +77,16 @@
     function renderPendingRow(a) {
       return `
         <tr id="row-${a.id}">
-          <td>
-            <strong>${a.title}</strong><br/>
-            <small class="text-muted">${a.description ? a.description.slice(0, 60) + "..." : ""}</small>
-          </td>
+          <td><strong>${a.title}</strong><br/><small class="text-muted">${(a.description || "").slice(0,60)}</small></td>
           <td>${a.seller_name || "—"}</td>
           <td>${formatCurrency(a.starting_price)}</td>
           <td><small>${formatDate(a.start_time)}</small></td>
           <td><small>${formatDate(a.end_time)}</small></td>
           <td>
             <div class="d-flex gap-1">
-              <button class="btn btn-sm btn-success" onclick="approveAuction(${a.id})">✅ Approve</button>
-              <button class="btn btn-sm btn-danger" onclick="rejectAuction(${a.id})">❌ Reject</button>
-              <a href="auction-detail.html?id=${a.id}" class="btn btn-sm btn-outline-secondary">👁️ View</a>
+              <button class="btn btn-sm btn-success" onclick="approveAuction(${a.id})">Approve</button>
+              <button class="btn btn-sm btn-danger"  onclick="rejectAuction(${a.id})">Reject</button>
+              <a href="auction-detail.html?id=${a.id}" class="btn btn-sm btn-outline-secondary">View</a>
             </div>
           </td>
         </tr>`;
@@ -114,24 +96,20 @@
       try {
         await AdminAPI.approveAuction(id);
         document.getElementById(`row-${id}`).remove();
-        showToast("✅ Auction approved!", "success");
+        showToast("Auction approved!", "success");
         loadStats();
-      } catch (err) {
-        showToast("❌ " + err.message, "danger");
-      }
+      } catch (err) { showToast(err.message, "danger"); }
     }
 
     async function rejectAuction(id) {
       const reason = prompt("Enter rejection reason (optional):");
-      if (reason === null) return; // cancelled
+      if (reason === null) return;
       try {
         await AdminAPI.rejectAuction(id, reason || "Rejected by admin");
         document.getElementById(`row-${id}`).remove();
         showToast("Auction rejected.", "warning");
         loadStats();
-      } catch (err) {
-        showToast("❌ " + err.message, "danger");
-      }
+      } catch (err) { showToast(err.message, "danger"); }
     }
   </script>
 </body>

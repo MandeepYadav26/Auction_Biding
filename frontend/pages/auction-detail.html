@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
@@ -8,15 +8,14 @@
   <link rel="stylesheet" href="../css/style.css"/>
 </head>
 <body>
-
   <div id="main-nav"></div>
   <div id="toast-container" class="toast-container position-fixed top-0 end-0 p-3" style="z-index:9999"></div>
 
-  <!-- Ending-soon banner (hidden initially) -->
+  <!-- Ending-soon banner -->
   <div id="ending-soon-banner" class="d-none">
     <div class="container">
       <div class="ending-soon-banner my-2 text-center">
-        🔥 <span id="banner-text">Auction ending very soon!</span> Place your bid now!
+        <span id="banner-text">Auction ending very soon! Place your bid now.</span>
       </div>
     </div>
   </div>
@@ -25,9 +24,7 @@
     <div class="loading-overlay"><div class="spinner-border text-secondary"></div></div>
   </div>
 
-  <footer class="text-center">
-    <div class="container"><p class="mb-0">© 2025 AuctionHub</p></div>
-  </footer>
+  <footer class="text-center"><div class="container"><p class="mb-0">© 2025 AuctionHub</p></div></footer>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="../js/api.js"></script>
@@ -38,17 +35,15 @@
     const auctionId  = urlParams.get("id");
     if (!auctionId) window.location.href = "auction-list.html";
 
-    let auction        = null;
-    let mainTimer      = null;   // CountdownTimer instance for big display
-    let autoRefreshId  = null;   // setInterval id for auto-refresh
-    const REFRESH_SECS = 30;     // auto-refresh bid data every 30 seconds
+    let auction       = null;
+    let mainTimer     = null;
+    let autoRefreshId = null;
+    const REFRESH_SECS = 30;
 
     document.addEventListener("DOMContentLoaded", async () => {
       renderNav();
       await loadAuction();
     });
-
-    // ── Load & render auction ─────────────────────────────────
 
     async function loadAuction() {
       try {
@@ -69,63 +64,50 @@
       const isActive = ["approved", "active"].includes(a.status);
       const isEnded  = ["ended", "sold", "cancelled"].includes(a.status);
 
-      const currentBid  = a.current_bid != null ? formatCurrency(a.current_bid) : formatCurrency(a.starting_price);
+      const startingBid = a.starting_bid != null ? a.starting_bid : (a.starting_price != null ? a.starting_price : 0);
+      const minInc      = a.minimum_increment != null ? a.minimum_increment : (a.min_bid_increment || 50);
+      const currentBid  = a.current_bid != null ? formatCurrency(a.current_bid) : formatCurrency(startingBid);
       const minNextBid  = a.current_bid != null
-        ? (Number(a.current_bid) + Number(a.min_bid_increment || 1)).toFixed(2)
-        : Number(a.starting_price).toFixed(2);
+        ? (Number(a.current_bid) + Number(minInc)).toFixed(2)
+        : Number(startingBid).toFixed(2);
+      const catName     = a.category ? a.category.name : (a.category_name || "—");
 
-      // Watchlist btn
       const watchBtn = (user && user.role === "bidder")
-        ? `<button class="btn btn-outline-secondary btn-sm mb-2" id="watchlist-btn" onclick="toggleWatchlist()">
-             ❤️ Add to Watchlist
-           </button>` : "";
+        ? `<button class="btn btn-outline-secondary btn-sm mb-2" id="watchlist-btn" onclick="toggleWatchlist()">Add to Watchlist</button>` : "";
 
-      // BIN button
       const binBtn = (isActive && a.buy_it_now_price && user && user.role === "bidder")
-        ? `<button class="btn btn-warning w-100 mt-2 btn-lg" onclick="doBuyItNow()">
-             ⚡ Buy It Now — ${formatCurrency(a.buy_it_now_price)}
-           </button>` : "";
+        ? `<button class="btn btn-warning w-100 mt-2 btn-lg" onclick="doBuyItNow()">Buy It Now — ${formatCurrency(a.buy_it_now_price)}</button>` : "";
 
-      // Bid section
       let bidSection = "";
       if (isActive && user && user.role === "bidder") {
         bidSection = `
           <hr/>
-          <!-- Manual Bid -->
           <div class="mb-3">
             <label class="form-label fw-bold small text-muted text-uppercase">Place a Bid</label>
             <div class="input-group">
-              <span class="input-group-text fw-bold">₹</span>
+              <span class="input-group-text fw-bold">Rs.</span>
               <input type="number" class="form-control form-control-lg" id="bid-amount"
-                     placeholder="Min ₹${minNextBid}" min="${minNextBid}" step="0.01"/>
+                     placeholder="Min Rs. ${minNextBid}" min="${minNextBid}" step="0.01"/>
               <button class="btn btn-success btn-lg px-4" onclick="placeBid()">Bid Now</button>
             </div>
-            <small class="text-muted">Minimum next bid: <strong>₹${minNextBid}</strong></small>
+            <small class="text-muted">Minimum next bid: <strong>Rs. ${minNextBid}</strong></small>
           </div>
-
-          <!-- Proxy Bid -->
           <div>
-            <label class="form-label fw-bold small text-muted text-uppercase">🤖 Proxy / Auto-Bid</label>
+            <label class="form-label fw-bold small text-muted text-uppercase">Proxy / Auto-Bid</label>
             <div class="input-group">
-              <span class="input-group-text fw-bold">₹</span>
-              <input type="number" class="form-control" id="proxy-amount"
-                     placeholder="Your max amount" step="0.01"/>
+              <span class="input-group-text fw-bold">Rs.</span>
+              <input type="number" class="form-control" id="proxy-amount" placeholder="Your max amount" step="0.01"/>
               <button class="btn btn-outline-primary" onclick="setProxyBid()">Set Proxy</button>
             </div>
             <small class="text-muted">System bids for you automatically up to your max.</small>
           </div>`;
       } else if (!user) {
-        bidSection = `
-          <hr/>
-          <div class="alert alert-info mb-0">
-            <a href="../login.html">Login</a> or <a href="../register.html">register</a> to place a bid.
-          </div>`;
+        bidSection = `<hr/><div class="alert alert-info mb-0"><a href="../login.html">Login</a> or <a href="../register.html">register</a> to place a bid.</div>`;
       } else if (isEnded) {
-        bidSection = `<hr/><div class="alert alert-secondary mb-0">⏰ This auction has ended.</div>`;
+        bidSection = `<hr/><div class="alert alert-secondary mb-0">This auction has ended.</div>`;
       }
 
       document.getElementById("detail-container").innerHTML = `
-        <!-- Breadcrumb -->
         <nav aria-label="breadcrumb" class="mb-3">
           <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="../index.html">Home</a></li>
@@ -135,77 +117,66 @@
         </nav>
 
         <div class="row g-4">
-          <!-- Left: Image & Info -->
           <div class="col-lg-7">
-            <div class="bg-light rounded d-flex align-items-center justify-content-center mb-3"
-                 style="height:280px;font-size:5rem;">🏷️</div>
+            <div class="bg-light rounded d-flex align-items-center justify-content-center mb-3" style="height:280px;">
+              <span class="text-muted">[ Item Image ]</span>
+            </div>
             <h3 class="fw-bold">${a.title}</h3>
             <p class="text-muted">${a.description || "No description provided."}</p>
             <table class="table table-sm table-borderless">
               <tbody>
-                <tr><td class="text-muted" width="140">Category</td><td>${a.category_name || "—"}</td></tr>
+                <tr><td class="text-muted" width="140">Category</td><td>${catName}</td></tr>
+                <tr><td class="text-muted">Condition</td><td><span class="badge bg-light text-dark border">${a.condition || "—"}</span></td></tr>
                 <tr><td class="text-muted">Seller</td><td>${a.seller_name || "—"}</td></tr>
                 <tr><td class="text-muted">Start Time</td><td>${formatDate(a.start_time)}</td></tr>
                 <tr><td class="text-muted">End Time</td><td>${formatDate(a.end_time)}</td></tr>
                 ${a.reserve_price ? `<tr><td class="text-muted">Reserve Price</td><td>${formatCurrency(a.reserve_price)}</td></tr>` : ""}
-                <tr><td class="text-muted">Min Increment</td><td>${formatCurrency(a.min_bid_increment || 1)}</td></tr>
+                <tr><td class="text-muted">Min Increment</td><td>${formatCurrency(minInc)}</td></tr>
                 <tr><td class="text-muted">Status</td><td>${statusBadge(a.status)}</td></tr>
               </tbody>
             </table>
           </div>
 
-          <!-- Right: Bid Box -->
           <div class="col-lg-5">
             <div class="detail-price-box mb-3">
               <div class="price-label mb-1">Current Bid</div>
               <div class="price-value" id="live-price">${currentBid}</div>
-              <small class="text-muted">Starting price: ${formatCurrency(a.starting_price)}</small>
-
-              <!-- ⏰ Big Countdown Display -->
+              <small class="text-muted">Starting price: ${formatCurrency(startingBid)}</small>
               <div class="mt-3 mb-1">
                 <div class="price-label mb-2">${isEnded ? "Auction Status" : "Time Remaining"}</div>
                 <div id="detail-countdown"></div>
               </div>
-
-              <!-- Auto-refresh indicator -->
               <div class="refresh-indicator mt-2" id="refresh-indicator">
                 <span class="refresh-dot"></span>
                 <span id="refresh-label">Live — refreshing in ${REFRESH_SECS}s</span>
               </div>
             </div>
-
             ${watchBtn}
             ${binBtn}
             ${bidSection}
           </div>
         </div>
 
-        <!-- Bid History -->
         <div class="mt-5">
           <div class="d-flex justify-content-between align-items-center mb-2">
-            <h5 class="section-title mb-0">📋 Bid History</h5>
-            <button class="btn btn-sm btn-outline-secondary" onclick="loadBidHistory()">🔄 Refresh</button>
+            <h5 class="section-title mb-0">Bid History</h5>
+            <button class="btn btn-sm btn-outline-secondary" onclick="loadBidHistory()">Refresh</button>
           </div>
           <div id="bid-history-container">
             <div class="loading-overlay"><div class="spinner-border text-secondary"></div></div>
           </div>
         </div>`;
 
-      // Initialize big countdown blocks
       if (!isEnded) {
         renderCountdownBlocks("detail-countdown");
       } else {
-        document.getElementById("detail-countdown").innerHTML =
-          `<div class="cd-ended text-secondary fw-bold">⏰ Auction Ended</div>`;
+        document.getElementById("detail-countdown").innerHTML = `<div class="text-secondary fw-bold">Auction Ended</div>`;
       }
     }
-
-    // ── Big countdown with urgency ────────────────────────────
 
     function startMainCountdown() {
       if (mainTimer) mainTimer.stop();
       if (!auction || !auction.end_time) return;
-
       const banner  = document.getElementById("ending-soon-banner");
       const bannerT = document.getElementById("banner-text");
       let lastUrgency = null;
@@ -213,36 +184,30 @@
       mainTimer = new CountdownTimer(auction.end_time, {
         onTick: (info) => {
           updateCountdownDisplay("detail-countdown", info);
-
-          // Show/hide urgency banner
           if (info.urgency === "critical") {
             banner.classList.remove("d-none");
-            bannerT.textContent = `Only ${info.mins}m ${info.secs}s left!`;
+            bannerT.textContent = `Only ${info.mins}m ${info.secs}s left! Place your bid now.`;
           } else if (info.urgency === "warning") {
             banner.classList.remove("d-none");
             bannerT.textContent = `Ending in ${info.hours > 0 ? info.hours + "h " : ""}${info.mins}m — hurry!`;
           } else {
             banner.classList.add("d-none");
           }
-
-          // Toast when urgency changes
           if (lastUrgency !== info.urgency) {
-            if (info.urgency === "warning")  showToast("⚠️ Less than 1 hour remaining!", "warning");
-            if (info.urgency === "critical") showToast("🔥 Less than 10 minutes! Bid now!", "danger");
+            if (info.urgency === "warning")  showToast("Less than 1 hour remaining!", "warning");
+            if (info.urgency === "critical") showToast("Less than 10 minutes! Bid now!", "danger");
             lastUrgency = info.urgency;
           }
         },
         onEnd: () => {
           banner.classList.add("d-none");
-          showToast("⏰ Auction has ended! Refreshing...", "info");
+          showToast("Auction has ended! Refreshing...", "info");
           stopAutoRefresh();
-          setTimeout(() => loadAuction(), 2000); // Reload full page data
+          setTimeout(() => loadAuction(), 2000);
         },
       });
       mainTimer.start();
     }
-
-    // ── Auto-refresh bid data ─────────────────────────────────
 
     let refreshCountdown = REFRESH_SECS;
 
@@ -250,7 +215,6 @@
       stopAutoRefresh();
       refreshCountdown = REFRESH_SECS;
       updateRefreshLabel();
-
       autoRefreshId = setInterval(async () => {
         refreshCountdown--;
         updateRefreshLabel();
@@ -273,25 +237,21 @@
 
     async function refreshBidData() {
       try {
-        // Refresh auction price silently
         const fresh = await PublicAPI.getAuction(auctionId);
         const priceEl = document.getElementById("live-price");
         if (priceEl) {
-          const newPrice = fresh.current_bid != null
-            ? formatCurrency(fresh.current_bid)
-            : formatCurrency(fresh.starting_price);
+          const startVal = fresh.starting_bid != null ? fresh.starting_bid : (fresh.starting_price != null ? fresh.starting_price : 0);
+          const newPrice = fresh.current_bid != null ? formatCurrency(fresh.current_bid) : formatCurrency(startVal);
           if (priceEl.textContent !== newPrice) {
             priceEl.textContent = newPrice;
             priceEl.classList.add("text-warning");
             setTimeout(() => priceEl.classList.remove("text-warning"), 1500);
-            showToast("💰 New bid placed! Price updated.", "info");
+            showToast("New bid placed! Price updated.", "info");
           }
         }
         await loadBidHistory();
       } catch (_) {}
     }
-
-    // ── Load bid history ──────────────────────────────────────
 
     async function loadBidHistory() {
       const container = document.getElementById("bid-history-container");
@@ -312,7 +272,7 @@
                 ${bids.map((b, i) => `
                   <tr ${i === 0 ? 'class="table-success"' : ""}>
                     <td>${i + 1}</td>
-                    <td>${b.bidder_name || "Bidder"}${i === 0 ? ' <span class="badge bg-success">🏆 Leading</span>' : ""}</td>
+                    <td>${b.bidder_name || "Bidder"}${i === 0 ? ' <span class="badge bg-success">Leading</span>' : ""}</td>
                     <td class="fw-bold ${i === 0 ? "text-success" : ""}">${formatCurrency(b.amount)}</td>
                     <td><span class="badge bg-secondary">${b.bid_type || "manual"}</span></td>
                     <td><small>${formatDate(b.created_at)}</small></td>
@@ -325,20 +285,16 @@
       }
     }
 
-    // ── Bidding actions ───────────────────────────────────────
-
     async function placeBid() {
       if (!requireAuth("bidder")) return;
       const amount = parseFloat(document.getElementById("bid-amount").value);
       if (!amount || amount <= 0) { showToast("Enter a valid bid amount.", "warning"); return; }
       try {
         await BiddingAPI.placeBid(auctionId, amount);
-        showToast("✅ Bid placed successfully!", "success");
+        showToast("Bid placed successfully!", "success");
         document.getElementById("bid-amount").value = "";
         await refreshBidData();
-      } catch (err) {
-        showToast("❌ " + err.message, "danger");
-      }
+      } catch (err) { showToast(err.message, "danger"); }
     }
 
     async function setProxyBid() {
@@ -347,12 +303,10 @@
       if (!amount || amount <= 0) { showToast("Enter a valid proxy bid amount.", "warning"); return; }
       try {
         await BiddingAPI.setProxyBid(auctionId, amount);
-        showToast("🤖 Proxy bid set! System will auto-bid on your behalf.", "success");
+        showToast("Proxy bid set! System will auto-bid on your behalf.", "success");
         document.getElementById("proxy-amount").value = "";
         await refreshBidData();
-      } catch (err) {
-        showToast("❌ " + err.message, "danger");
-      }
+      } catch (err) { showToast(err.message, "danger"); }
     }
 
     async function doBuyItNow() {
@@ -360,31 +314,27 @@
       if (!confirm(`Buy this item now for ${formatCurrency(auction.buy_it_now_price)}?`)) return;
       try {
         await BiddingAPI.buyItNow(auctionId);
-        showToast("🎉 Purchase successful! Check Won Auctions.", "success");
+        showToast("Purchase successful! Check Won Auctions.", "success");
         stopAutoRefresh();
         if (mainTimer) mainTimer.stop();
         setTimeout(() => loadAuction(), 1500);
-      } catch (err) {
-        showToast("❌ " + err.message, "danger");
-      }
+      } catch (err) { showToast(err.message, "danger"); }
     }
 
     async function toggleWatchlist() {
       if (!requireAuth("bidder")) return;
       try {
         await BidderAPI.addToWatchlist(auctionId);
-        showToast("❤️ Added to watchlist!", "success");
+        showToast("Added to watchlist!", "success");
         const btn = document.getElementById("watchlist-btn");
-        if (btn) btn.innerHTML = "❤️ In Watchlist";
+        if (btn) btn.textContent = "In Watchlist";
       } catch (err) {
         try {
           await BidderAPI.removeFromWatchlist(auctionId);
-          showToast("💔 Removed from watchlist.", "info");
+          showToast("Removed from watchlist.", "info");
           const btn = document.getElementById("watchlist-btn");
-          if (btn) btn.innerHTML = "❤️ Add to Watchlist";
-        } catch (e2) {
-          showToast("❌ " + err.message, "danger");
-        }
+          if (btn) btn.textContent = "Add to Watchlist";
+        } catch (e2) { showToast(err.message, "danger"); }
       }
     }
   </script>

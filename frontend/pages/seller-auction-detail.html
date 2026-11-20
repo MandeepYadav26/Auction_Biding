@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
@@ -13,11 +13,10 @@
 
   <div class="container mt-4">
     <div class="d-flex align-items-center gap-2 mb-4">
-      <a href="seller-dashboard.html" class="btn btn-sm btn-outline-secondary">← Back</a>
+      <a href="seller-dashboard.html" class="btn btn-sm btn-outline-secondary">Back</a>
       <h4 class="fw-bold mb-0" id="page-title">Auction Bids</h4>
     </div>
 
-    <!-- Auction Summary -->
     <div id="auction-summary" class="card mb-4 d-none">
       <div class="card-body">
         <div class="row">
@@ -36,8 +35,7 @@
       </div>
     </div>
 
-    <!-- Bids table -->
-    <h5 class="section-title">📋 All Bids</h5>
+    <h5 class="section-title">All Bids Received</h5>
     <div id="bids-container">
       <div class="loading-overlay"><div class="spinner-border text-secondary"></div></div>
     </div>
@@ -49,7 +47,7 @@
   <script src="../js/api.js"></script>
   <script src="../js/auth.js"></script>
   <script>
-    const params = new URLSearchParams(window.location.search);
+    const params    = new URLSearchParams(window.location.search);
     const auctionId = params.get("id");
     if (!auctionId) window.location.href = "seller-dashboard.html";
 
@@ -63,12 +61,13 @@
     async function loadAuctionDetail() {
       try {
         const a = await PublicAPI.getAuction(auctionId);
-        document.getElementById("page-title").textContent = `Bids: ${a.title}`;
-        document.getElementById("sum-title").textContent = a.title;
-        document.getElementById("sum-status").innerHTML = statusBadge(a.status);
-        document.getElementById("sum-end").textContent = formatDate(a.end_time);
-        document.getElementById("sum-start-price").textContent = formatCurrency(a.starting_price);
-        document.getElementById("sum-current-bid").textContent = a.current_bid != null ? formatCurrency(a.current_bid) : "No bids";
+        document.getElementById("page-title").textContent        = "Bids: " + a.title;
+        document.getElementById("sum-title").textContent         = a.title;
+        document.getElementById("sum-status").innerHTML          = statusBadge(a.status);
+        document.getElementById("sum-end").textContent           = formatDate(a.end_time);
+        const startVal = a.starting_bid != null ? a.starting_bid : (a.starting_price != null ? a.starting_price : 0);
+        document.getElementById("sum-start-price").textContent   = formatCurrency(startVal);
+        document.getElementById("sum-current-bid").textContent   = a.current_bid != null ? formatCurrency(a.current_bid) : "No bids";
         document.getElementById("auction-summary").classList.remove("d-none");
       } catch (_) {}
     }
@@ -81,24 +80,17 @@
           container.innerHTML = `<p class="text-muted text-center p-4">No bids placed on this auction yet.</p>`;
           return;
         }
-
         container.innerHTML = `
           <div class="table-responsive">
             <table class="table table-sm table-striped bid-history-table">
               <thead class="table-dark">
-                <tr>
-                  <th>#</th>
-                  <th>Bidder</th>
-                  <th>Amount</th>
-                  <th>Type</th>
-                  <th>Time</th>
-                </tr>
+                <tr><th>#</th><th>Bidder</th><th>Amount</th><th>Type</th><th>Time</th></tr>
               </thead>
               <tbody>
                 ${bids.map((b, i) => `
                   <tr ${i === 0 ? 'class="table-success"' : ""}>
                     <td>${i + 1}</td>
-                    <td>${b.bidder_name || "Bidder #" + b.bidder_id}${i === 0 ? ' <span class="badge bg-success">🏆 Highest</span>' : ""}</td>
+                    <td>${b.bidder_name || "Bidder #" + b.bidder_id}${i === 0 ? ' <span class="badge bg-success">Highest</span>' : ""}</td>
                     <td class="fw-bold">${formatCurrency(b.amount)}</td>
                     <td><span class="badge bg-secondary">${b.bid_type || "manual"}</span></td>
                     <td>${formatDate(b.created_at)}</td>
