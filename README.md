@@ -110,8 +110,8 @@ API Docs: http://127.0.0.1:8000/docs
 | 12    | Winner + Payment       |  Done   |
 | 13    | Frontend Polish        |  Done   |
 | 14    | AI Description Gen     |  Done   |
-| 15    | ML Price Prediction    |  next   |
-| 16    | Testing                | pending |
+| 15    | ML Price Prediction    |  Done   |
+| 16    | Testing                |  Done |
 
 ---
 
